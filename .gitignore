@@ -4,3 +4,9 @@ frontend/dist/
 dist/
 .DS_Store
 *.log
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
