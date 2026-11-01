@@ -112,16 +112,15 @@ El sistema representa la Fase 1 del ciclo de vida operativo de una distribuidora
 - Instancia de MongoDB accesible (servicio local en `127.0.0.1:27017`, Docker o MongoDB Atlas).
 
 ### Paso a paso Backend
-1. Clonar el repositorio y ubicarse en la raíz del proyecto:
+1. Ubicarse en la carpeta `server/`:
    ```bash
-   git clone <URL_DEL_REPOSITORIO>
-   cd proyecto-crud-mongodb
+   cd server
    ```
 2. Instalar las dependencias del backend:
    ```bash
    npm install
    ```
-3. Revisar el archivo `.env` en la raíz (ya incluido con valores funcionales por defecto):
+3. Revisar el archivo `.env` en `server/` (ya incluido con valores funcionales por defecto):
    ```env
    PORT=3000
    MONGODB_URI=mongodb://127.0.0.1:27017/distribuidora_agua
@@ -137,12 +136,17 @@ El sistema representa la Fase 1 del ciclo de vida operativo de una distribuidora
    - Modo desarrollo con recarga automática: `npm run dev`
    - El servidor estará disponible en `http://localhost:3000`.
 
-### Paso a paso Frontend
-1. Abrir una nueva terminal y navegar a la carpeta `frontend/`:
+En un solo comando:
+```bash
+cd server && npm install && npm run seed && npm start
+```
+
+### Paso a paso Frontend (Client)
+1. Abrir una nueva terminal y navegar a la carpeta `client/`:
    ```bash
-   cd frontend
+   cd client
    ```
-2. Instalar las dependencias del frontend:
+2. Instalar las dependencias del cliente:
    ```bash
    npm install
    ```
@@ -150,10 +154,24 @@ El sistema representa la Fase 1 del ciclo de vida operativo de una distribuidora
    ```bash
    npm run dev
    ```
+
+En un solo comando:
+```bash
+cd client && npm install && npm run dev
+```
+
 4. Abrir en el navegador la URL indicada (habitualmente `http://localhost:5173`).
 5. Ingresar con las credenciales del usuario semilla:
    - **Email:** `admin@aguapura.com`
    - **Contraseña:** `admin1234`
+
+### Scripts de delegación desde la raíz (opcional)
+Desde la raíz del repositorio se pueden ejecutar directamente:
+- Instalar ambas carpetas: `npm run install:all`
+- Poblar la base de datos: `npm run seed`
+- Iniciar backend: `npm run server` (o `npm run server:dev`)
+- Iniciar frontend: `npm run client`
+- Compilar frontend: `npm run client:build`
 
 ---
 
@@ -438,7 +456,7 @@ El sistema representa la Fase 1 del ciclo de vida operativo de una distribuidora
 
 ## 8. Variables de Entorno de Ejemplo (.env)
 
-El archivo `.env` en la raíz del proyecto posee las siguientes variables requeridas:
+El archivo `server/.env` en el backend posee las siguientes variables requeridas:
 
 ```env
 PORT=3000
@@ -447,7 +465,7 @@ JWT_SECRET=supersecretjwtkey_utn_proyecto_2026
 JWT_EXPIRES_IN=2h
 ```
 
-En la carpeta `frontend/.env` se configura el endpoint de comunicación:
+En la carpeta `client/.env` se configura el endpoint de comunicación:
 ```env
 VITE_API_URL=http://localhost:3000/api
 ```
@@ -456,55 +474,65 @@ VITE_API_URL=http://localhost:3000/api
 
 ## 9. Estructura del Proyecto
 
+El repositorio está organizado en dos carpetas principales: `server/` (backend) y `client/` (frontend).
+
+> [!NOTE]
+> **Nota sobre la consigna:** La carpeta `server/` contiene la estructura modular de directorios (`config`, `controllers`, `middleware`, `models`, `routes`, `services`, `utils`) requerida por la consigna del proyecto.
+
 ```
-proyecto-crud-mongodb/
-├── app.js
-├── .env
-├── .gitignore
+distribuidora-agua/
 ├── package.json
-├── package-lock.json
+├── .gitignore
 ├── README.md
-├── src/
-│   ├── config/
-│   │   └── db.js
-│   ├── controllers/
-│   │   ├── categoryController.js
-│   │   ├── clientController.js
-│   │   ├── localityController.js
-│   │   ├── productController.js
-│   │   ├── userController.js
-│   │   └── zoneController.js
-│   ├── middleware/
-│   │   └── verifyToken.js
-│   ├── models/
-│   │   ├── categoryModel.js
-│   │   ├── clientModel.js
-│   │   ├── localityModel.js
-│   │   ├── productModel.js
-│   │   ├── userModel.js
-│   │   └── zoneModel.js
-│   ├── routes/
-│   │   ├── categoryRoute.js
-│   │   ├── clientRoute.js
-│   │   ├── localityRoute.js
-│   │   ├── productRoute.js
-│   │   ├── userRoute.js
-│   │   └── zoneRoute.js
-│   ├── services/
-│   │   ├── categoryService.js
-│   │   ├── clientService.js
-│   │   ├── localityService.js
-│   │   ├── productService.js
-│   │   ├── userService.js
-│   │   └── zoneService.js
-│   └── utils/
-│       ├── AppError.js
-│       ├── handleError.js
-│       └── seed.js
-└── frontend/
+├── server/
+│   ├── app.js
+│   ├── .env
+│   ├── .env.example
+│   ├── package.json
+│   ├── package-lock.json
+│   └── src/
+│       ├── config/
+│       │   └── db.js
+│       ├── controllers/
+│       │   ├── categoryController.js
+│       │   ├── clientController.js
+│       │   ├── localityController.js
+│       │   ├── productController.js
+│       │   ├── userController.js
+│       │   └── zoneController.js
+│       ├── middleware/
+│       │   └── verifyToken.js
+│       ├── models/
+│       │   ├── categoryModel.js
+│       │   ├── clientModel.js
+│       │   ├── localityModel.js
+│       │   ├── productModel.js
+│       │   ├── userModel.js
+│       │   └── zoneModel.js
+│       ├── routes/
+│       │   ├── categoryRoute.js
+│       │   ├── clientRoute.js
+│       │   ├── localityRoute.js
+│       │   ├── productRoute.js
+│       │   ├── userRoute.js
+│       │   └── zoneRoute.js
+│       ├── services/
+│       │   ├── categoryService.js
+│       │   ├── clientService.js
+│       │   ├── localityService.js
+│       │   ├── productService.js
+│       │   ├── userService.js
+│       │   └── zoneService.js
+│       └── utils/
+│           ├── AppError.js
+│           ├── handleError.js
+│           └── seed.js
+└── client/
     ├── .env
+    ├── .env.example
     ├── index.html
     ├── package.json
+    ├── package-lock.json
     ├── vite.config.js
     └── src/
         ├── api/
