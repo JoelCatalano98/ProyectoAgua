@@ -1,37 +1,32 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useForm } from '../hooks/useForm';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || '/';
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      await login(email, password);
-      navigate(from, { replace: true });
-    } catch (err) {
-      setError(err.message || 'Error al iniciar sesión. Verifique sus credenciales.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    values,
+    setValues,
+    handleChange,
+    isSubmitting: loading,
+    error,
+    handleSubmit
+  } = useForm({ email: '', password: '' }, async ({ email, password }) => {
+    await login(email, password);
+    navigate(from, { replace: true });
+  });
 
   const handleFillDemo = () => {
-    setEmail('admin@aguapura.com');
-    setPassword('admin1234');
+    setValues({
+      email: 'admin@aguapura.com',
+      password: 'admin1234'
+    });
   };
 
   return (
@@ -59,11 +54,12 @@ const LoginPage = () => {
             </label>
             <input
               id="email"
+              name="email"
               type="email"
               className="form-control"
               placeholder="ejemplo@aguapura.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={values.email}
+              onChange={handleChange}
               required
               autoFocus
             />
@@ -75,11 +71,12 @@ const LoginPage = () => {
             </label>
             <input
               id="password"
+              name="password"
               type="password"
               className="form-control"
               placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={values.password}
+              onChange={handleChange}
               required
             />
           </div>

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import ConfirmModal from './ConfirmModal';
 import { useCrud } from '../hooks/useCrud';
 import { useModal } from '../hooks/useModal';
+import { useForm } from '../hooks/useForm';
+import { useTimedMessage } from '../hooks/useTimedMessage';
 
 const EntityCrud = ({
   title,
@@ -25,13 +27,15 @@ const EntityCrud = ({
     return initial;
   });
 
+  // Mensaje temporal con autocierre y limpieza segura
+  const successMessage = useTimedMessage(4000);
+
   // Hook CRUD
   const {
     items,
     loading,
     actionLoading,
     error: crudError,
-    success: crudSuccess,
     createItem,
     updateItem,
     deleteItem,
@@ -42,9 +46,26 @@ const EntityCrud = ({
   const formModal = useModal(false);
   const deleteModal = useModal(false);
 
-  // Estado del formulario
-  const [formData, setFormData] = useState(initialFormValues);
-  const [formError, setFormError] = useState('');
+  // Manejo de formulario dinámico con useForm
+  const {
+    values: formData,
+    handleFieldChange,
+    reset: resetForm,
+    error: formError,
+    handleSubmit: handleSubmitForm
+  } = useForm(initialFormValues, async (currentValues) => {
+    const payload = onTransformSubmit ? onTransformSubmit(currentValues) : currentValues;
+
+    if (formModal.data) {
+      await updateItem(formModal.data._id, payload);
+      successMessage.showMessage(`${title} actualizado correctamente`);
+    } else {
+      await createItem(payload);
+      successMessage.showMessage(`${title} creado exitosamente`);
+    }
+
+    formModal.close();
+  });
 
   // Manejo de cambios en filtros
   const handleFilterChange = (name, value) => {
@@ -53,8 +74,7 @@ const EntityCrud = ({
 
   // Abrir modal de creacion
   const handleOpenCreate = () => {
-    setFormData(initialFormValues);
-    setFormError('');
+    resetForm(initialFormValues);
     clearMessages();
     formModal.openWithData(null);
   };
@@ -62,8 +82,7 @@ const EntityCrud = ({
   // Abrir modal de edicion
   const handleOpenEdit = (item) => {
     const initial = onTransformInitial ? onTransformInitial(item) : { ...item };
-    setFormData(initial);
-    setFormError('');
+    resetForm(initial);
     clearMessages();
     formModal.openWithData(item);
   };
@@ -74,27 +93,6 @@ const EntityCrud = ({
     deleteModal.openWithData(item);
   };
 
-  // Guardar (Crear o Editar)
-  const handleSubmitForm = async (e) => {
-    e.preventDefault();
-    setFormError('');
-
-    try {
-      const payload = onTransformSubmit ? onTransformSubmit(formData) : formData;
-
-      if (formModal.data) {
-        await updateItem(formModal.data._id, payload);
-      } else {
-        await createItem(payload);
-      }
-
-      formModal.close();
-      setTimeout(() => clearMessages(), 4000);
-    } catch (err) {
-      setFormError(err.message || 'Error al procesar la solicitud');
-    }
-  };
-
   // Confirmar eliminacion
   const handleConfirmDelete = async () => {
     if (!deleteModal.data) return;
@@ -102,15 +100,10 @@ const EntityCrud = ({
     try {
       await deleteItem(deleteModal.data._id);
       deleteModal.close();
-      setTimeout(() => clearMessages(), 4000);
+      successMessage.showMessage('Registro eliminado correctamente');
     } catch (err) {
       // El error permanece en crudError y se visualiza dentro de ConfirmModal
     }
-  };
-
-  // Manejo de campos en formulario dinamico
-  const handleFieldChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -134,10 +127,10 @@ const EntityCrud = ({
         </div>
 
         {/* Mensajes de exito o error globales */}
-        {crudSuccess && (
+        {successMessage.message && (
           <div className="alert alert-success">
             <span>✅</span>
-            <div>{crudSuccess}</div>
+            <div>{successMessage.message}</div>
           </div>
         )}
         {crudError && !deleteModal.isOpen && (

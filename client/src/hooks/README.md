@@ -17,3 +17,5 @@ Centralizar y desacoplar la lógica de estado y efectos secundarios de los compo
 - `useFetch`: Peticiones asíncronas con gestión de `loading`, `error`, cancelación segura de respuestas tardías al desmontar y función de reintento `refetch`.
 - `useModal`: Control de visibilidad y datos adjuntos de diálogos, modales o paneles laterales (`isOpen`, `open`, `close`, `toggle`, `data`, `openWithData`).
 - `useCrud`: Operaciones completas de lectura (`GET`), alta (`POST`), modificación (`PUT`) y baja (`DELETE`) sobre endpoints REST, con estados `loading`, `actionLoading`, `error` y `success`.
+- `useForm`: Control unificado de campos, valores, validación, manejo de submit asíncrono y reseteo (`values`, `handleChange`, `handleFieldChange`, `reset`, `isSubmitting`, `error`, `handleSubmit`).
+- `useTimedMessage`: Mensajes temporales (alertas de éxito) con autocierre automático, reseteo entre mensajes y limpieza segura de temporizadores al desmontar el componente (`message`, `showMessage`, `clearMessage`).
