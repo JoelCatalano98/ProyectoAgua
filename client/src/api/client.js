@@ -1,8 +1,14 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+let unauthorizedHandler = null;
+
+export const setUnauthorizedHandler = (handler) => {
+  unauthorizedHandler = handler;
+};
+
 /**
  * Cliente HTTP unificado para la API REST.
- * Adjunta token de localStorage y maneja redireccion en respuestas 401.
+ * Adjunta token de localStorage y maneja respuestas 401 via callback registrado.
  */
 async function request(endpoint, options = {}) {
   const url = new URL(
@@ -37,11 +43,8 @@ async function request(endpoint, options = {}) {
     if (res.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.dispatchEvent(new Event('auth:unauthorized'));
-
-      // Si no estamos en login, redirigir
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      if (typeof unauthorizedHandler === 'function') {
+        unauthorizedHandler();
       }
     }
 
@@ -66,7 +69,8 @@ export const api = {
   get: (endpoint, params) => request(endpoint, { method: 'GET', params }),
   post: (endpoint, body) => request(endpoint, { method: 'POST', body }),
   put: (endpoint, body) => request(endpoint, { method: 'PUT', body }),
-  delete: (endpoint) => request(endpoint, { method: 'DELETE' })
+  delete: (endpoint) => request(endpoint, { method: 'DELETE' }),
+  setUnauthorizedHandler: (handler) => setUnauthorizedHandler(handler)
 };
 
 export default api;

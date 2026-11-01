@@ -1,46 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import api from '../api/client';
+import { useFetch } from '../hooks/useFetch';
 
 const HojaRutaPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [zones, setZones] = useState([]);
   const [selectedZoneId, setSelectedZoneId] = useState(searchParams.get('zona') || '');
-  const [hojaData, setHojaData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  // Cargar zonas disponibles
+  // Cargar zonas disponibles con useFetch
+  const { data: zonesData, error: zonesError } = useFetch('/zones', [], []);
+  const zones = Array.isArray(zonesData) ? zonesData : [];
+
+  // Seleccionar la primera zona si no hay ninguna seleccionada
   useEffect(() => {
-    api.get('/zones')
-      .then((data) => {
-        const list = Array.isArray(data) ? data : [];
-        setZones(list);
-        if (!selectedZoneId && list.length > 0) {
-          setSelectedZoneId(list[0]._id);
-        }
-      })
-      .catch(() => setZones([]));
-  }, []);
+    if (!selectedZoneId && zones.length > 0) {
+      setSelectedZoneId(zones[0]._id);
+    }
+  }, [selectedZoneId, zones]);
 
-  // Cargar hoja de ruta al cambiar de zona
-  useEffect(() => {
-    if (!selectedZoneId) return;
+  // Cargar hoja de ruta al cambiar de zona con useFetch
+  const {
+    data: hojaData,
+    loading,
+    error: hojaError
+  } = useFetch(
+    selectedZoneId ? `/zones/${selectedZoneId}/hoja-de-ruta` : null,
+    [selectedZoneId],
+    null
+  );
 
-    setLoading(true);
-    setError('');
-    api.get(`/zones/${selectedZoneId}/hoja-de-ruta`)
-      .then((data) => {
-        setHojaData(data);
-      })
-      .catch((err) => {
-        setError(err.message || 'Error al obtener la hoja de ruta');
-        setHojaData(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [selectedZoneId]);
+  const displayError = hojaError || zonesError;
 
   const handleZoneChange = (e) => {
     const id = e.target.value;
@@ -89,10 +77,10 @@ const HojaRutaPage = () => {
         </div>
       </div>
 
-      {error && (
+      {displayError && (
         <div className="alert alert-danger no-print">
           <span>⚠️</span>
-          <div>{error}</div>
+          <div>{displayError}</div>
         </div>
       )}
 

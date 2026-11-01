@@ -1,15 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import EntityCrud from '../components/EntityCrud';
-import api from '../api/client';
+import { useFetch } from '../hooks/useFetch';
 
 const ProductsPage = () => {
-  const [categories, setCategories] = useState([]);
-
-  useEffect(() => {
-    api.get('/categories')
-      .then((data) => setCategories(Array.isArray(data) ? data : []))
-      .catch(() => setCategories([]));
-  }, []);
+  const { data: categoriesData, error: categoriesError } = useFetch('/categories', [], []);
+  const categories = Array.isArray(categoriesData) ? categoriesData : [];
 
   const columns = [
     {
@@ -106,24 +101,32 @@ const ProductsPage = () => {
   ];
 
   return (
-    <EntityCrud
-      title="Productos & Servicios"
-      subtitle="Catálogo de envases, dispensers y abonos mensuales"
-      endpoint="/products"
-      columns={columns}
-      fields={fields}
-      filters={filters}
-      initialFormValues={{ nombre: '', categoria: '', precio: '', stock: 0, descripcion: '' }}
-      onTransformInitial={(item) => ({
-        ...item,
-        categoria: item.categoria?._id || item.categoria || ''
-      })}
-      onTransformSubmit={(data) => ({
-        ...data,
-        precio: Number(data.precio),
-        stock: Number(data.stock || 0)
-      })}
-    />
+    <div>
+      {categoriesError && (
+        <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>
+          <span>⚠️</span>
+          <div>Error al cargar categorías: {categoriesError}</div>
+        </div>
+      )}
+      <EntityCrud
+        title="Productos & Servicios"
+        subtitle="Catálogo de envases, dispensers y abonos mensuales"
+        endpoint="/products"
+        columns={columns}
+        fields={fields}
+        filters={filters}
+        initialFormValues={{ nombre: '', categoria: '', precio: '', stock: 0, descripcion: '' }}
+        onTransformInitial={(item) => ({
+          ...item,
+          categoria: item.categoria?._id || item.categoria || ''
+        })}
+        onTransformSubmit={(data) => ({
+          ...data,
+          precio: Number(data.precio),
+          stock: Number(data.stock || 0)
+        })}
+      />
+    </div>
   );
 };
 

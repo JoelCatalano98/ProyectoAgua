@@ -1,20 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import EntityCrud from '../components/EntityCrud';
 import api from '../api/client';
+import { useFetch } from '../hooks/useFetch';
 
 const ClientsPage = () => {
-  const [localities, setLocalities] = useState([]);
-  const [zones, setZones] = useState([]);
-
-  useEffect(() => {
-    Promise.all([
-      api.get('/localities').catch(() => []),
-      api.get('/zones').catch(() => [])
-    ]).then(([locData, zoneData]) => {
-      setLocalities(Array.isArray(locData) ? locData : []);
-      setZones(Array.isArray(zoneData) ? zoneData : []);
-    });
-  }, []);
+  const { data: referencesData, error: referencesError } = useFetch(
+    () => Promise.all([api.get('/localities'), api.get('/zones')]),
+    [],
+    [[], []]
+  );
+  const [localitiesData, zonesData] = Array.isArray(referencesData) ? referencesData : [[], []];
+  const localities = Array.isArray(localitiesData) ? localitiesData : [];
+  const zones = Array.isArray(zonesData) ? zonesData : [];
 
   const columns = [
     {
@@ -172,34 +169,42 @@ const ClientsPage = () => {
   ];
 
   return (
-    <EntityCrud
-      title="Clientes"
-      subtitle="Padrón comercial de clientes particulares y corporativos"
-      endpoint="/clients"
-      columns={columns}
-      fields={fields}
-      filters={filters}
-      initialFormValues={{
-        nombre: '',
-        telefono: '',
-        direccion: '',
-        localidad: '',
-        envasesEnPoder: 0,
-        saldo: 0,
-        activo: true,
-        observaciones: ''
-      }}
-      onTransformInitial={(item) => ({
-        ...item,
-        localidad: item.localidad?._id || item.localidad || ''
-      })}
-      onTransformSubmit={(data) => ({
-        ...data,
-        envasesEnPoder: Number(data.envasesEnPoder || 0),
-        saldo: Number(data.saldo || 0),
-        activo: Boolean(data.activo)
-      })}
-    />
+    <div>
+      {referencesError && (
+        <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>
+          <span>⚠️</span>
+          <div>Error al cargar referencias de clientes: {referencesError}</div>
+        </div>
+      )}
+      <EntityCrud
+        title="Clientes"
+        subtitle="Padrón comercial de clientes particulares y corporativos"
+        endpoint="/clients"
+        columns={columns}
+        fields={fields}
+        filters={filters}
+        initialFormValues={{
+          nombre: '',
+          telefono: '',
+          direccion: '',
+          localidad: '',
+          envasesEnPoder: 0,
+          saldo: 0,
+          activo: true,
+          observaciones: ''
+        }}
+        onTransformInitial={(item) => ({
+          ...item,
+          localidad: item.localidad?._id || item.localidad || ''
+        })}
+        onTransformSubmit={(data) => ({
+          ...data,
+          envasesEnPoder: Number(data.envasesEnPoder || 0),
+          saldo: Number(data.saldo || 0),
+          activo: Boolean(data.activo)
+        })}
+      />
+    </div>
   );
 };
 

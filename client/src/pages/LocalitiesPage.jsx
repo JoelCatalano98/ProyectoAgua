@@ -1,15 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import EntityCrud from '../components/EntityCrud';
-import api from '../api/client';
+import { useFetch } from '../hooks/useFetch';
 
 const LocalitiesPage = () => {
-  const [zones, setZones] = useState([]);
-
-  useEffect(() => {
-    api.get('/zones')
-      .then((data) => setZones(Array.isArray(data) ? data : []))
-      .catch(() => setZones([]));
-  }, []);
+  const { data: zonesData, error: zonesError } = useFetch('/zones', [], []);
+  const zones = Array.isArray(zonesData) ? zonesData : [];
 
   const columns = [
     {
@@ -71,19 +66,27 @@ const LocalitiesPage = () => {
   ];
 
   return (
-    <EntityCrud
-      title="Localidades"
-      subtitle="Ciudades y localidades integradas en los recorridos"
-      endpoint="/localities"
-      columns={columns}
-      fields={fields}
-      filters={filters}
-      initialFormValues={{ nombre: '', provincia: 'Santa Fe', zona: '' }}
-      onTransformInitial={(item) => ({
-        ...item,
-        zona: item.zona?._id || item.zona || ''
-      })}
-    />
+    <div>
+      {zonesError && (
+        <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>
+          <span>⚠️</span>
+          <div>Error al cargar zonas: {zonesError}</div>
+        </div>
+      )}
+      <EntityCrud
+        title="Localidades"
+        subtitle="Ciudades y localidades integradas en los recorridos"
+        endpoint="/localities"
+        columns={columns}
+        fields={fields}
+        filters={filters}
+        initialFormValues={{ nombre: '', provincia: 'Santa Fe', zona: '' }}
+        onTransformInitial={(item) => ({
+          ...item,
+          zona: item.zona?._id || item.zona || ''
+        })}
+      />
+    </div>
   );
 };
 

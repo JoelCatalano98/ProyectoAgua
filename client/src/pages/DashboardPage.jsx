@@ -1,47 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
+import { useFetch } from '../hooks/useFetch';
+
+const initialStats = {
+  productsCount: 0,
+  activeClientsCount: 0,
+  totalClientsCount: 0,
+  zonesCount: 0,
+  categoriesCount: 0
+};
 
 const DashboardPage = () => {
-  const [stats, setStats] = useState({
-    productsCount: 0,
-    activeClientsCount: 0,
-    totalClientsCount: 0,
-    zonesCount: 0,
-    categoriesCount: 0
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { data: statsData, loading, error } = useFetch(
+    async () => {
+      const [products, activeClients, allClients, zones, categories] = await Promise.all([
+        api.get('/products'),
+        api.get('/clients', { activo: 'true' }),
+        api.get('/clients'),
+        api.get('/zones'),
+        api.get('/categories')
+      ]);
 
-  useEffect(() => {
-    const fetchTotals = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const [products, activeClients, allClients, zones, categories] = await Promise.all([
-          api.get('/products').catch(() => []),
-          api.get('/clients', { activo: 'true' }).catch(() => []),
-          api.get('/clients').catch(() => []),
-          api.get('/zones').catch(() => []),
-          api.get('/categories').catch(() => [])
-        ]);
+      return {
+        productsCount: Array.isArray(products) ? products.length : 0,
+        activeClientsCount: Array.isArray(activeClients) ? activeClients.length : 0,
+        totalClientsCount: Array.isArray(allClients) ? allClients.length : 0,
+        zonesCount: Array.isArray(zones) ? zones.length : 0,
+        categoriesCount: Array.isArray(categories) ? categories.length : 0
+      };
+    },
+    [],
+    initialStats
+  );
 
-        setStats({
-          productsCount: Array.isArray(products) ? products.length : 0,
-          activeClientsCount: Array.isArray(activeClients) ? activeClients.length : 0,
-          totalClientsCount: Array.isArray(allClients) ? allClients.length : 0,
-          zonesCount: Array.isArray(zones) ? zones.length : 0,
-          categoriesCount: Array.isArray(categories) ? categories.length : 0
-        });
-      } catch (err) {
-        setError('Error al consultar estadísticas iniciales');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTotals();
-  }, []);
+  const stats = statsData || initialStats;
 
   return (
     <div>

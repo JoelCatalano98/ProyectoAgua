@@ -1,9 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
+import { useAuth } from '../hooks/useAuth';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  const navigate = useNavigate();
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [user, setUser] = useState(() => {
     try {
@@ -14,15 +17,26 @@ export const AuthProvider = ({ children }) => {
     }
   });
 
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
+  }, []);
+
   useEffect(() => {
     const handleUnauthorized = () => {
-      setToken(null);
-      setUser(null);
+      logout();
+      if (!window.location.pathname.includes('/login')) {
+        navigate('/login');
+      }
     };
 
-    window.addEventListener('auth:unauthorized', handleUnauthorized);
-    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
-  }, []);
+    api.setUnauthorizedHandler(handleUnauthorized);
+    return () => {
+      api.setUnauthorizedHandler(null);
+    };
+  }, [logout, navigate]);
 
   const login = async (email, password) => {
     const data = await api.post('/users/login', { email, password });
@@ -36,13 +50,6 @@ export const AuthProvider = ({ children }) => {
     throw new Error('Respuesta de autenticación incompleta');
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
-  };
-
   const isAuthenticated = Boolean(token);
 
   return (
@@ -52,10 +59,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth debe ser utilizado dentro de un AuthProvider');
-  }
-  return context;
-};
+export { useAuth };
