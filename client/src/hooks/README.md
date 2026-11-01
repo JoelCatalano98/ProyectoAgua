@@ -15,3 +15,5 @@ Centralizar y desacoplar la lógica de estado y efectos secundarios de los compo
 ## Índice de Hooks
 - `useAuth`: Acceso centralizado al contexto global de autenticación (`user`, `token`, `isAuthenticated`, `login`, `logout`).
 - `useFetch`: Peticiones asíncronas con gestión de `loading`, `error`, cancelación segura de respuestas tardías al desmontar y función de reintento `refetch`.
+- `useModal`: Control de visibilidad y datos adjuntos de diálogos, modales o paneles laterales (`isOpen`, `open`, `close`, `toggle`, `data`, `openWithData`).
+- `useCrud`: Operaciones completas de lectura (`GET`), alta (`POST`), modificación (`PUT`) y baja (`DELETE`) sobre endpoints REST, con estados `loading`, `actionLoading`, `error` y `success`.

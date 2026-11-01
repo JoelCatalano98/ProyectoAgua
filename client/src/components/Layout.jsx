@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useModal } from '../hooks/useModal';
 
 const Layout = () => {
   const { user, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenu = useModal(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -12,19 +13,15 @@ const Layout = () => {
     navigate('/login');
   };
 
-  const closeMobileMenu = () => {
-    setMobileMenuOpen(false);
-  };
-
   return (
     <div className="app-container">
       {/* Overlay para cerrar el menú en móviles */}
-      {mobileMenuOpen && (
-        <div className="sidebar-overlay" onClick={closeMobileMenu} />
+      {mobileMenu.isOpen && (
+        <div className="sidebar-overlay" onClick={mobileMenu.close} />
       )}
 
       {/* Barra lateral */}
-      <aside className={`sidebar ${mobileMenuOpen ? 'open' : ''}`}>
+      <aside className={`sidebar ${mobileMenu.isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <span className="brand-icon">💧</span>
           <span className="brand-title">Agua Pura ERP</span>
@@ -35,7 +32,7 @@ const Layout = () => {
             to="/"
             end
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
+            onClick={mobileMenu.close}
           >
             <span className="nav-icon">📊</span>
             <span>Dashboard</span>
@@ -44,7 +41,7 @@ const Layout = () => {
           <NavLink
             to="/products"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
+            onClick={mobileMenu.close}
           >
             <span className="nav-icon">📦</span>
             <span>Productos</span>
@@ -53,7 +50,7 @@ const Layout = () => {
           <NavLink
             to="/categories"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
+            onClick={mobileMenu.close}
           >
             <span className="nav-icon">🏷️</span>
             <span>Categorías</span>
@@ -62,7 +59,7 @@ const Layout = () => {
           <NavLink
             to="/zones"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
+            onClick={mobileMenu.close}
           >
             <span className="nav-icon">🗺️</span>
             <span>Zonas</span>
@@ -71,7 +68,7 @@ const Layout = () => {
           <NavLink
             to="/localities"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
+            onClick={mobileMenu.close}
           >
             <span className="nav-icon">📍</span>
             <span>Localidades</span>
@@ -80,7 +77,7 @@ const Layout = () => {
           <NavLink
             to="/clients"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
+            onClick={mobileMenu.close}
           >
             <span className="nav-icon">👥</span>
             <span>Clientes</span>
@@ -89,7 +86,7 @@ const Layout = () => {
           <NavLink
             to="/hoja-de-ruta"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={closeMobileMenu}
+            onClick={mobileMenu.close}
           >
             <span className="nav-icon">🚚</span>
             <span>Hoja de Ruta</span>
@@ -124,7 +121,7 @@ const Layout = () => {
           <div className="topbar-left">
             <button
               className="hamburger-btn"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={mobileMenu.toggle}
               aria-label="Abrir menú"
             >
               ☰

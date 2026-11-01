@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import api from '../api/client';
+import React, { useState } from 'react';
 import ConfirmModal from './ConfirmModal';
+import { useCrud } from '../hooks/useCrud';
+import { useModal } from '../hooks/useModal';
 
 const EntityCrud = ({
   title,
@@ -15,13 +16,7 @@ const EntityCrud = ({
   extraRowActions,
   headerActions
 }) => {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
-  const [apiSuccess, setApiSuccess] = useState('');
-
-  // Estados de filtros
+  // Filtros
   const [filterValues, setFilterValues] = useState(() => {
     const initial = {};
     filters.forEach((f) => {
@@ -30,33 +25,26 @@ const EntityCrud = ({
     return initial;
   });
 
-  // Estados de modal formulario
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  // Hook CRUD
+  const {
+    items,
+    loading,
+    actionLoading,
+    error: crudError,
+    success: crudSuccess,
+    createItem,
+    updateItem,
+    deleteItem,
+    clearMessages
+  } = useCrud(endpoint, { filters: filterValues });
+
+  // Modales
+  const formModal = useModal(false);
+  const deleteModal = useModal(false);
+
+  // Estado del formulario
   const [formData, setFormData] = useState(initialFormValues);
   const [formError, setFormError] = useState('');
-
-  // Estados de modal confirmacion de eliminacion
-  const [itemToDelete, setItemToDelete] = useState(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-  // Carga de datos
-  const loadItems = useCallback(async () => {
-    setLoading(true);
-    setApiError('');
-    try {
-      const data = await api.get(endpoint, filterValues);
-      setItems(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setApiError(err.message || 'Error al cargar los datos');
-    } finally {
-      setLoading(false);
-    }
-  }, [endpoint, filterValues]);
-
-  useEffect(() => {
-    loadItems();
-  }, [loadItems]);
 
   // Manejo de cambios en filtros
   const handleFilterChange = (name, value) => {
@@ -65,75 +53,58 @@ const EntityCrud = ({
 
   // Abrir modal de creacion
   const handleOpenCreate = () => {
-    setEditingItem(null);
     setFormData(initialFormValues);
     setFormError('');
-    setIsModalOpen(true);
+    clearMessages();
+    formModal.openWithData(null);
   };
 
   // Abrir modal de edicion
   const handleOpenEdit = (item) => {
-    setEditingItem(item);
     const initial = onTransformInitial ? onTransformInitial(item) : { ...item };
     setFormData(initial);
     setFormError('');
-    setIsModalOpen(true);
+    clearMessages();
+    formModal.openWithData(item);
   };
 
   // Abrir modal de eliminacion
   const handleOpenDelete = (item) => {
-    setItemToDelete(item);
-    setApiError('');
-    setApiSuccess('');
-    setIsDeleteModalOpen(true);
+    clearMessages();
+    deleteModal.openWithData(item);
   };
 
   // Guardar (Crear o Editar)
   const handleSubmitForm = async (e) => {
     e.preventDefault();
     setFormError('');
-    setActionLoading(true);
 
     try {
       const payload = onTransformSubmit ? onTransformSubmit(formData) : formData;
 
-      if (editingItem) {
-        await api.put(`${endpoint}/${editingItem._id}`, payload);
-        setApiSuccess(`${title} actualizado correctamente`);
+      if (formModal.data) {
+        await updateItem(formModal.data._id, payload);
       } else {
-        await api.post(endpoint, payload);
-        setApiSuccess(`${title} creado exitosamente`);
+        await createItem(payload);
       }
 
-      setIsModalOpen(false);
-      loadItems();
-      setTimeout(() => setApiSuccess(''), 4000);
+      formModal.close();
+      setTimeout(() => clearMessages(), 4000);
     } catch (err) {
       setFormError(err.message || 'Error al procesar la solicitud');
-    } finally {
-      setActionLoading(false);
     }
   };
 
   // Confirmar eliminacion
   const handleConfirmDelete = async () => {
-    if (!itemToDelete) return;
-    setActionLoading(true);
-    setApiError('');
+    if (!deleteModal.data) return;
 
     try {
-      await api.delete(`${endpoint}/${itemToDelete._id}`);
-      setApiSuccess('Registro eliminado correctamente');
-      setIsDeleteModalOpen(false);
-      setItemToDelete(null);
-      loadItems();
-      setTimeout(() => setApiSuccess(''), 4000);
+      await deleteItem(deleteModal.data._id);
+      deleteModal.close();
+      setTimeout(() => clearMessages(), 4000);
     } catch (err) {
-      // Muestra claramente mensajes como 400 de reglas de negocio
-      setApiError(err.message || 'Error al eliminar el registro');
-      setIsDeleteModalOpen(false);
-    } finally {
-      setActionLoading(false);
+      // El error permanece en crudError y se visualiza dentro de ConfirmModal
     }
   };
 
@@ -163,16 +134,16 @@ const EntityCrud = ({
         </div>
 
         {/* Mensajes de exito o error globales */}
-        {apiSuccess && (
+        {crudSuccess && (
           <div className="alert alert-success">
             <span>✅</span>
-            <div>{apiSuccess}</div>
+            <div>{crudSuccess}</div>
           </div>
         )}
-        {apiError && (
+        {crudError && !deleteModal.isOpen && (
           <div className="alert alert-danger">
             <span>⚠️</span>
-            <div>{apiError}</div>
+            <div>{crudError}</div>
           </div>
         )}
 
@@ -198,14 +169,13 @@ const EntityCrud = ({
             ))}
             <div style={{ alignSelf: 'flex-end', paddingBottom: '2px' }}>
               <button
-                type="button"
                 className="btn btn-secondary btn-sm"
                 onClick={() => {
-                  const reset = {};
+                  const resetFilters = {};
                   filters.forEach((f) => {
-                    reset[f.name] = '';
+                    resetFilters[f.name] = f.defaultValue || '';
                   });
-                  setFilterValues(reset);
+                  setFilterValues(resetFilters);
                 }}
               >
                 Limpiar Filtros
@@ -214,16 +184,21 @@ const EntityCrud = ({
           </div>
         )}
 
-        {/* Tabla responsive con transformacion a tarjetas en celular */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
+        {/* Estado de carga */}
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
             Cargando registros...
           </div>
-        ) : items.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
-            No se encontraron registros.
+        )}
+
+        {/* Tabla de datos */}
+        {!loading && items.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+            No se encontraron registros para mostrar.
           </div>
-        ) : (
+        )}
+
+        {!loading && items.length > 0 && (
           <div className="table-container">
             <table className="data-table">
               <thead>
@@ -231,7 +206,7 @@ const EntityCrud = ({
                   {columns.map((col) => (
                     <th key={col.key}>{col.label}</th>
                   ))}
-                  <th style={{ textAlign: 'right' }}>Acciones</th>
+                  <th style={{ width: '130px', textAlign: 'right' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -239,18 +214,18 @@ const EntityCrud = ({
                   <tr key={item._id}>
                     {columns.map((col) => (
                       <td key={col.key} data-label={col.label}>
-                        {col.render ? col.render(item) : item[col.key] || '-'}
+                        {col.render ? col.render(item) : item[col.key]}
                       </td>
                     ))}
                     <td data-label="Acciones">
-                      <div className="action-buttons" style={{ justifyContent: 'flex-end' }}>
+                      <div className="table-actions">
                         {extraRowActions && extraRowActions(item)}
                         <button
                           className="btn btn-secondary btn-sm"
                           onClick={() => handleOpenEdit(item)}
                           title="Editar"
                         >
-                          ✏️ Editar
+                          ✏️
                         </button>
                         <button
                           className="btn btn-danger btn-sm"
@@ -269,17 +244,17 @@ const EntityCrud = ({
         )}
       </div>
 
-      {/* Modal de Creacion / Edicion */}
-      {isModalOpen && (
-        <div className="modal-overlay" onClick={() => !actionLoading && setIsModalOpen(false)}>
+      {/* Modal de Formulario (Crear / Editar) */}
+      {formModal.isOpen && (
+        <div className="modal-overlay" onClick={formModal.close}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">
-                {editingItem ? `Editar ${title}` : `Nuevo ${title}`}
+                {formModal.data ? `Editar ${title}` : `Nuevo ${title}`}
               </h3>
               <button
                 className="modal-close-btn"
-                onClick={() => setIsModalOpen(false)}
+                onClick={formModal.close}
                 disabled={actionLoading}
               >
                 ×
@@ -289,29 +264,13 @@ const EntityCrud = ({
             <form onSubmit={handleSubmitForm}>
               <div className="modal-body">
                 {formError && (
-                  <div className="alert alert-danger">
+                  <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>
                     <span>⚠️</span>
                     <div>{formError}</div>
                   </div>
                 )}
 
                 {fields.map((field) => {
-                  if (field.type === 'checkbox') {
-                    return (
-                      <div key={field.name} className="form-group checkbox-group">
-                        <input
-                          id={field.name}
-                          type="checkbox"
-                          checked={Boolean(formData[field.name])}
-                          onChange={(e) => handleFieldChange(field.name, e.target.checked)}
-                        />
-                        <label className="form-label" htmlFor={field.name} style={{ cursor: 'pointer' }}>
-                          {field.label}
-                        </label>
-                      </div>
-                    );
-                  }
-
                   if (field.type === 'select') {
                     return (
                       <div key={field.name} className="form-group">
@@ -325,12 +284,13 @@ const EntityCrud = ({
                           onChange={(e) => handleFieldChange(field.name, e.target.value)}
                           required={field.required}
                         >
-                          <option value="">{field.placeholder || 'Seleccione una opción...'}</option>
-                          {field.options.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </option>
-                          ))}
+                          <option value="">{field.placeholder || 'Seleccione...'}</option>
+                          {field.options &&
+                            field.options.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
                         </select>
                       </div>
                     );
@@ -355,18 +315,42 @@ const EntityCrud = ({
                     );
                   }
 
+                  if (field.type === 'checkbox') {
+                    return (
+                      <div key={field.name} className="form-group">
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(formData[field.name])}
+                            onChange={(e) => handleFieldChange(field.name, e.target.checked)}
+                          />
+                          <span style={{ fontWeight: 500 }}>{field.label}</span>
+                        </label>
+                      </div>
+                    );
+                  }
+
                   if (field.type === 'days') {
-                    const daysList = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                    const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
                     const currentDays = Array.isArray(formData[field.name]) ? formData[field.name] : [];
 
                     return (
                       <div key={field.name} className="form-group">
                         <label className="form-label">{field.label}</label>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
-                          {daysList.map((day) => (
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          {daysOfWeek.map((day) => (
                             <label
                               key={day}
-                              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                padding: '0.35rem 0.6rem',
+                                border: '1px solid var(--border-color)',
+                                borderRadius: '4px',
+                                fontSize: '0.875rem',
+                                cursor: 'pointer'
+                              }}
                             >
                               <input
                                 type="checkbox"
@@ -415,13 +399,13 @@ const EntityCrud = ({
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={formModal.close}
                   disabled={actionLoading}
                 >
                   Cancelar
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={actionLoading}>
-                  {actionLoading ? 'Guardando...' : editingItem ? 'Actualizar' : 'Crear'}
+                  {actionLoading ? 'Guardando...' : formModal.data ? 'Actualizar' : 'Crear'}
                 </button>
               </div>
             </form>
@@ -431,18 +415,19 @@ const EntityCrud = ({
 
       {/* Modal de confirmacion para eliminar */}
       <ConfirmModal
-        isOpen={isDeleteModalOpen}
+        isOpen={deleteModal.isOpen}
         title={`Eliminar ${title}`}
         message={`¿Está seguro de que desea eliminar ${
-          itemToDelete ? `"${itemToDelete.nombre || 'este registro'}"` : 'este registro'
+          deleteModal.data ? `"${deleteModal.data.nombre || 'este registro'}"` : 'este registro'
         }? Esta acción no se puede deshacer.`}
         confirmText="Sí, eliminar"
         cancelText="Cancelar"
         loading={actionLoading}
+        error={crudError}
         onConfirm={handleConfirmDelete}
         onCancel={() => {
-          setIsDeleteModalOpen(false);
-          setItemToDelete(null);
+          deleteModal.close();
+          clearMessages();
         }}
       />
     </div>

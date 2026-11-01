@@ -9,7 +9,8 @@ const ConfirmModal = ({
   onConfirm,
   onCancel,
   loading = false,
-  isDanger = true
+  isDanger = true,
+  error = ''
 }) => {
   if (!isOpen) return null;
 
@@ -30,6 +31,12 @@ const ConfirmModal = ({
 
         <div className="modal-body">
           <p style={{ fontSize: '0.975rem', color: 'var(--text-main)' }}>{message}</p>
+          {error && (
+            <div className="alert alert-danger" style={{ marginTop: '0.75rem' }}>
+              <span>⚠️</span>
+              <div>{error}</div>
+            </div>
+          )}
         </div>
 
         <div className="modal-footer">
