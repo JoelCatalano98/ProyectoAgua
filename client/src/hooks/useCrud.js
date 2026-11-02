@@ -12,6 +12,7 @@ import api from '../api/client';
  *   loading: boolean,
  *   actionLoading: boolean,
  *   error: string,
+ *   errorStatus: number|null,
  *   success: string,
  *   loadItems: () => Promise<Array>,
  *   createItem: (data: object) => Promise<any>,
@@ -28,6 +29,7 @@ export const useCrud = (endpoint, options = {}) => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errorStatus, setErrorStatus] = useState(null);
   const [success, setSuccess] = useState('');
 
   const filtersRef = useRef(filters);
@@ -36,6 +38,7 @@ export const useCrud = (endpoint, options = {}) => {
   const loadItems = useCallback(async () => {
     setLoading(true);
     setError('');
+    setErrorStatus(null);
     try {
       const data = await api.get(endpoint, filtersRef.current);
       const list = Array.isArray(data) ? data : [];
@@ -44,6 +47,7 @@ export const useCrud = (endpoint, options = {}) => {
     } catch (err) {
       const msg = err.message || 'Error al cargar los registros';
       setError(msg);
+      setErrorStatus(err.status || null);
       throw err;
     } finally {
       setLoading(false);
@@ -59,6 +63,7 @@ export const useCrud = (endpoint, options = {}) => {
     async (payload) => {
       setActionLoading(true);
       setError('');
+      setErrorStatus(null);
       try {
         const result = await api.post(endpoint, payload);
         setSuccess('Registro creado exitosamente');
@@ -67,6 +72,7 @@ export const useCrud = (endpoint, options = {}) => {
       } catch (err) {
         const msg = err.message || 'Error al crear el registro';
         setError(msg);
+        setErrorStatus(err.status || null);
         throw err;
       } finally {
         setActionLoading(false);
@@ -79,6 +85,7 @@ export const useCrud = (endpoint, options = {}) => {
     async (id, payload) => {
       setActionLoading(true);
       setError('');
+      setErrorStatus(null);
       try {
         const result = await api.put(`${endpoint}/${id}`, payload);
         setSuccess('Registro actualizado correctamente');
@@ -87,6 +94,7 @@ export const useCrud = (endpoint, options = {}) => {
       } catch (err) {
         const msg = err.message || 'Error al actualizar el registro';
         setError(msg);
+        setErrorStatus(err.status || null);
         throw err;
       } finally {
         setActionLoading(false);
@@ -99,6 +107,7 @@ export const useCrud = (endpoint, options = {}) => {
     async (id) => {
       setActionLoading(true);
       setError('');
+      setErrorStatus(null);
       try {
         const result = await api.delete(`${endpoint}/${id}`);
         setSuccess('Registro eliminado correctamente');
@@ -107,6 +116,7 @@ export const useCrud = (endpoint, options = {}) => {
       } catch (err) {
         const msg = err.message || 'Error al eliminar el registro';
         setError(msg);
+        setErrorStatus(err.status || null);
         throw err;
       } finally {
         setActionLoading(false);
@@ -117,6 +127,7 @@ export const useCrud = (endpoint, options = {}) => {
 
   const clearMessages = useCallback(() => {
     setError('');
+    setErrorStatus(null);
     setSuccess('');
   }, []);
 
@@ -125,6 +136,7 @@ export const useCrud = (endpoint, options = {}) => {
     loading,
     actionLoading,
     error,
+    errorStatus,
     success,
     loadItems,
     createItem,

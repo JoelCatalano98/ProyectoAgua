@@ -36,6 +36,7 @@ const EntityCrud = ({
     loading,
     actionLoading,
     error: crudError,
+    errorStatus: crudErrorStatus,
     createItem,
     updateItem,
     deleteItem,
@@ -413,10 +414,11 @@ const EntityCrud = ({
         message={`¿Está seguro de que desea eliminar ${
           deleteModal.data ? `"${deleteModal.data.nombre || 'este registro'}"` : 'este registro'
         }? Esta acción no se puede deshacer.`}
-        confirmText="Sí, eliminar"
+        confirmText="Sí, borrar"
         cancelText="Cancelar"
         loading={actionLoading}
         error={crudError}
+        errorStatus={crudErrorStatus}
         onConfirm={handleConfirmDelete}
         onCancel={() => {
           deleteModal.close();
