@@ -37,7 +37,7 @@ app.use(async (req, res, next) => {
 });
 
 // Ruta base informativa
-app.get('/api', (req, res) => {
+app.get(['/', '/api'], (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'API RESTful Distribuidora de Agua - Proyecto Final UTN BA',
