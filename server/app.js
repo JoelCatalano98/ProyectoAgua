@@ -23,6 +23,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Conexión a base de datos bajo demanda para entornos serverless
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      message: 'Error interno del servidor'
+    });
+  }
+});
+
 // Ruta base informativa
 app.get('/api', (req, res) => {
   res.status(200).json({
