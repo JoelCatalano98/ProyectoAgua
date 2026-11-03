@@ -90,6 +90,7 @@ export const api = {
   get: (endpoint, params) => request(endpoint, { method: 'GET', params }),
   post: (endpoint, body) => request(endpoint, { method: 'POST', body }),
   put: (endpoint, body) => request(endpoint, { method: 'PUT', body }),
+  patch: (endpoint, body) => request(endpoint, { method: 'PATCH', body }),
   delete: (endpoint) => request(endpoint, { method: 'DELETE' }),
   setUnauthorizedHandler: (handler) => setUnauthorizedHandler(handler)
 };

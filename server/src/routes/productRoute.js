@@ -28,6 +28,13 @@ router.put(
   validate(updateProductSchema, 'body'),
   productController.update
 );
+router.patch(
+  '/:id',
+  verifyToken,
+  validate(idParamSchema, 'params'),
+  validate(updateProductSchema, 'body'),
+  productController.update
+);
 router.delete(
   '/:id',
   verifyToken,

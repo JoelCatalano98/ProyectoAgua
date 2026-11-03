@@ -50,5 +50,6 @@ module.exports = {
   getById,
   create,
   update,
+  patch: update,
   remove
 };

@@ -205,7 +205,8 @@ Desde la raíz del repositorio se pueden ejecutar directamente:
 | `GET` | `/api/products` | Listado de productos (admite filtro `?categoria=`) | No |
 | `GET` | `/api/products/:id` | Detalle de un producto con categoría poblada | No |
 | `POST` | `/api/products` | Alta de producto (valida existencia de categoría) | Sí |
-| `PUT` | `/api/products/:id` | Actualización parcial de producto | Sí |
+| `PUT` | `/api/products/:id` | Actualización completa o de campos de producto | Sí |
+| `PATCH` | `/api/products/:id` | Actualización parcial de producto | Sí |
 | `DELETE` | `/api/products/:id` | Eliminación de producto | Sí |
 | `GET` | `/api/zones` | Listado de zonas con días de reparto | No |
 | `GET` | `/api/zones/:id` | Detalle de una zona logística | No |
@@ -344,6 +345,31 @@ Desde la raíz del repositorio se pueden ejecutar directamente:
   {
     "ok": false,
     "message": "La categoría especificada no existe"
+  }
+  ```
+
+#### PATCH `/api/products/:id` (Requiere Header: `Authorization: Bearer <token>`)
+- **Request (Modificación parcial de stock):**
+  ```json
+  {
+    "stock": 500
+  }
+  ```
+- **Response `200 OK`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf222",
+    "nombre": "Bidón 20 Litros Retornable",
+    "descripcion": "Agua purificada baja en sodio",
+    "precio": 4200,
+    "stock": 500,
+    "categoria": {
+      "_id": "67be89b52044b7d1420cf111",
+      "nombre": "Bidones",
+      "descripcion": "Envases retornables y descartables"
+    },
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:05:00.000Z"
   }
   ```
 
