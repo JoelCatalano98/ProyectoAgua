@@ -37,6 +37,7 @@ const EntityCrud = ({
     actionLoading,
     error: crudError,
     errorStatus: crudErrorStatus,
+    loadItems,
     createItem,
     updateItem,
     deleteItem,
@@ -53,6 +54,9 @@ const EntityCrud = ({
     handleFieldChange,
     reset: resetForm,
     error: formError,
+    setError: setFormError,
+    fieldErrors,
+    setFieldErrors,
     handleSubmit: handleSubmitForm
   } = useForm(initialFormValues, async (currentValues) => {
     const payload = onTransformSubmit ? onTransformSubmit(currentValues) : currentValues;
@@ -67,6 +71,77 @@ const EntityCrud = ({
 
     formModal.close();
   });
+
+  // Pre-validación del formulario del lado del cliente
+  const validateForm = (values) => {
+    const errors = {};
+    fields.forEach((field) => {
+      const val = values[field.name];
+
+      // Campos obligatorios
+      if (field.required) {
+        if (
+          val === undefined ||
+          val === null ||
+          (typeof val === 'string' && val.trim() === '')
+        ) {
+          errors[field.name] = `${field.label} es obligatorio`;
+          return;
+        }
+      }
+
+      // Validaciones numéricas (precio >= 0, stock >= 0, etc.)
+      if (field.type === 'number' || field.min !== undefined) {
+        if (val !== undefined && val !== null && val !== '') {
+          const num = Number(val);
+          if (isNaN(num)) {
+            errors[field.name] = `${field.label} debe ser un número válido`;
+          } else if (field.min !== undefined && num < field.min) {
+            errors[field.name] = `${field.label} no puede ser menor a ${field.min}`;
+          }
+        }
+      }
+
+      // Validaciones de email
+      if (field.type === 'email' && val) {
+        const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!EMAIL_REGEX.test(String(val).trim())) {
+          errors[field.name] = 'Formato de correo electrónico inválido';
+        }
+      }
+    });
+    return errors;
+  };
+
+  const handleFormSubmit = async (e) => {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
+    setFormError('');
+
+    // Pre-validación
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setFormError('Por favor, corregí los errores indicados abajo');
+      return;
+    }
+
+    try {
+      await handleSubmitForm(e);
+    } catch (err) {
+      if (err.detalles && Array.isArray(err.detalles) && err.detalles.length > 0) {
+        const apiErrors = {};
+        err.detalles.forEach((d) => {
+          if (d.campo) apiErrors[d.campo] = d.mensaje;
+        });
+        setFieldErrors(apiErrors);
+        setFormError('Por favor, corregí los errores indicados abajo');
+      } else {
+        setFormError(err.message || 'Error al procesar la solicitud');
+      }
+    }
+  };
 
   // Manejo de cambios en filtros
   const handleFilterChange = (name, value) => {
@@ -135,9 +210,29 @@ const EntityCrud = ({
           </div>
         )}
         {crudError && !deleteModal.isOpen && (
-          <div className="alert alert-danger">
-            <span>⚠️</span>
-            <div>{crudError}</div>
+          <div
+            className="alert alert-danger"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>⚠️</span>
+              <div>{crudError}</div>
+            </div>
+            {(crudErrorStatus === 0 || !items.length) && (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => loadItems().catch(() => {})}
+              >
+                🔄 Reintentar
+              </button>
+            )}
           </div>
         )}
 
@@ -255,7 +350,7 @@ const EntityCrud = ({
               </button>
             </div>
 
-            <form onSubmit={handleSubmitForm}>
+            <form onSubmit={handleFormSubmit} noValidate>
               <div className="modal-body">
                 {formError && (
                   <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>
@@ -265,6 +360,8 @@ const EntityCrud = ({
                 )}
 
                 {fields.map((field) => {
+                  const hasError = Boolean(fieldErrors[field.name]);
+
                   if (field.type === 'select') {
                     return (
                       <div key={field.name} className="form-group">
@@ -273,10 +370,9 @@ const EntityCrud = ({
                         </label>
                         <select
                           id={field.name}
-                          className="form-control"
+                          className={`form-control ${hasError ? 'input-error' : ''}`}
                           value={formData[field.name] || ''}
                           onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                          required={field.required}
                         >
                           <option value="">{field.placeholder || 'Seleccione...'}</option>
                           {field.options &&
@@ -286,6 +382,9 @@ const EntityCrud = ({
                               </option>
                             ))}
                         </select>
+                        {hasError && (
+                          <span className="field-error">{fieldErrors[field.name]}</span>
+                        )}
                       </div>
                     );
                   }
@@ -298,13 +397,15 @@ const EntityCrud = ({
                         </label>
                         <textarea
                           id={field.name}
-                          className="form-control"
+                          className={`form-control ${hasError ? 'input-error' : ''}`}
                           rows="3"
                           placeholder={field.placeholder}
                           value={formData[field.name] || ''}
                           onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                          required={field.required}
                         />
+                        {hasError && (
+                          <span className="field-error">{fieldErrors[field.name]}</span>
+                        )}
                       </div>
                     );
                   }
@@ -320,6 +421,9 @@ const EntityCrud = ({
                           />
                           <span style={{ fontWeight: 500 }}>{field.label}</span>
                         </label>
+                        {hasError && (
+                          <span className="field-error">{fieldErrors[field.name]}</span>
+                        )}
                       </div>
                     );
                   }
@@ -364,6 +468,9 @@ const EntityCrud = ({
                             </label>
                           ))}
                         </div>
+                        {hasError && (
+                          <span className="field-error">{fieldErrors[field.name]}</span>
+                        )}
                       </div>
                     );
                   }
@@ -378,12 +485,14 @@ const EntityCrud = ({
                         type={field.type || 'text'}
                         step={field.step}
                         min={field.min}
-                        className="form-control"
+                        className={`form-control ${hasError ? 'input-error' : ''}`}
                         placeholder={field.placeholder}
                         value={formData[field.name] !== undefined ? formData[field.name] : ''}
                         onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                        required={field.required}
                       />
+                      {hasError && (
+                        <span className="field-error">{fieldErrors[field.name]}</span>
+                      )}
                     </div>
                   );
                 })}

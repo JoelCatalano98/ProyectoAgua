@@ -51,16 +51,37 @@ async function request(endpoint, options = {}) {
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      const errorMessage =
-        data.message || data.error || (data.details ? data.details.join(', ') : 'Error en la solicitud');
+      let errorMessage = data.message || data.error;
+      if (!errorMessage && data.detalles && data.detalles.length > 0) {
+        errorMessage = data.detalles.map((d) => d.mensaje).join(', ');
+      }
+      if (!errorMessage) {
+        if (res.status === 409) {
+          errorMessage = 'Ya existe un registro con esos datos únicos';
+        } else if (res.status === 404) {
+          errorMessage = 'Recurso no encontrado';
+        } else {
+          errorMessage = 'Error en la solicitud';
+        }
+      }
       const error = new Error(errorMessage);
       error.status = res.status;
+      error.detalles = Array.isArray(data.detalles) ? data.detalles : [];
       error.data = data;
       throw error;
     }
 
     return data;
   } catch (err) {
+    if (err.name === 'TypeError' || err.message === 'Failed to fetch' || !err.status) {
+      const netErr = new Error(
+        'No se pudo conectar con el servidor. Verificá tu conexión o que el servicio esté activo'
+      );
+      netErr.status = 0;
+      netErr.isNetworkError = true;
+      netErr.detalles = [];
+      throw netErr;
+    }
     throw err;
   }
 }
