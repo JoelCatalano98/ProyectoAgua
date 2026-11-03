@@ -177,73 +177,32 @@ El sistema administra el catálogo comercial de productos y servicios de una dis
 
 ---
 
-## 4. Instrucciones para Correr el Proyecto
+## Cómo Correr el Proyecto
+
+Cada parte (`server/` para el backend y `client/` para el frontend) es un proyecto independiente y se ejecuta por separado.
 
 ### Requisitos previos
 - Node.js instalado (versión 18 o superior).
 - Instancia de MongoDB accesible (servicio local en `127.0.0.1:27017`, Docker o MongoDB Atlas).
 
-### Paso a paso Backend
-1. Ubicarse en la carpeta `server/`:
-   ```bash
-   cd server
-   ```
-2. Instalar las dependencias del backend:
-   ```bash
-   npm install
-   ```
-3. Revisar el archivo `.env` en `server/` (ya incluido con valores funcionales por defecto):
-   ```env
-   PORT=3000
-   MONGODB_URI=mongodb://127.0.0.1:27017/distribuidora_agua
-   JWT_SECRET=supersecretjwtkey_utn_proyecto_2026
-   JWT_EXPIRES_IN=2h
-   ```
-4. Poblar la base de datos con los datos iniciales y el usuario administrador:
-   ```bash
-   npm run seed
-   ```
-5. Iniciar la API REST:
-   - Modo producción: `npm start`
-   - Modo desarrollo con recarga automática: `npm run dev`
-   - El servidor estará disponible en `http://localhost:3000`.
-
-En un solo comando:
+### Backend (`server/`)
+En una primera terminal:
 ```bash
 cd server && npm install && npm run seed && npm start
 ```
+- `npm run seed` puebla la base de datos con categorías, zonas, localidades, clientes, productos y el usuario administrador inicial.
+- Para desarrollo con recarga automática, podés ejecutar `npm run dev`.
+- El servidor queda disponible en `http://localhost:3000`.
 
-### Paso a paso Frontend (Client)
-1. Abrir una nueva terminal y navegar a la carpeta `client/`:
-   ```bash
-   cd client
-   ```
-2. Instalar las dependencias del cliente:
-   ```bash
-   npm install
-   ```
-3. Iniciar el servidor de desarrollo de Vite:
-   ```bash
-   npm run dev
-   ```
-
-En un solo comando:
+### Frontend (`client/`)
+En una segunda terminal:
 ```bash
 cd client && npm install && npm run dev
 ```
-
-4. Abrir en el navegador la URL indicada (habitualmente `http://localhost:5173`).
-5. Ingresar con las credenciales del usuario semilla:
-   - **Email:** `admin@aguapura.com`
-   - **Contraseña:** `admin1234`
-
-### Scripts de delegación desde la raíz (opcional)
-Desde la raíz del repositorio se pueden ejecutar directamente:
-- Instalar ambas carpetas: `npm run install:all`
-- Poblar la base de datos: `npm run seed`
-- Iniciar backend: `npm run server` (o `npm run server:dev`)
-- Iniciar frontend: `npm run client`
-- Compilar frontend: `npm run client:build`
+- Inicia el servidor de desarrollo Vite disponible habitualmente en `http://localhost:5173`.
+- Para ingresar al sistema, usá las credenciales creadas por el seed:
+  - **Email:** `admin@aguapura.com`
+  - **Contraseña:** `admin1234`
 
 ---
 
@@ -601,46 +560,29 @@ Todas las respuestas de error de la API utilizan una estructura unificada y pred
 
 ---
 
-## 8. Variables de Entorno de Ejemplo (.env)
+## Estructura del Repositorio
 
-El archivo `server/.env` en el backend posee las siguientes variables requeridas:
-
-```env
-PORT=3000
-MONGODB_URI=mongodb://127.0.0.1:27017/distribuidora_agua
-JWT_SECRET=supersecretjwtkey_utn_proyecto_2026
-JWT_EXPIRES_IN=2h
-```
-
-En la carpeta `client/.env` se configura el endpoint de comunicación:
-```env
-VITE_API_URL=http://localhost:3000/api
-```
-
----
-
-## 9. Estructura del Proyecto
-
-El repositorio está organizado en dos carpetas principales: `server/` (backend) y `client/` (frontend).
+El repositorio está organizado en dos partes claramente separadas e independientes: `server/` (backend) y `client/` (frontend).
 
 > [!NOTE]
-> **Nota sobre la consigna:** La carpeta `server/` contiene la estructura modular de directorios (`config`, `controllers`, `middleware`, `models`, `routes`, `services`, `utils`) requerida por la consigna del proyecto.
+> **Estructura pedida por la consigna:** La carpeta `server/` contiene la estructura modular de directorios (`app.js`, `.env`, `.env.example`, `package.json`, `src/config/`, `src/controllers/`, `src/middleware/`, `src/models/`, `src/routes/`, `src/services/`, `src/utils/`) requerida por la consigna del TP. La carpeta `client/` contiene el desarrollo del frontend opcional como Single Page Application (SPA). No se utiliza un `package.json` en la raíz: cada parte gestiona sus dependencias, scripts de ejecución y ciclo de despliegue por separado.
 
 ```
 distribuidora-agua/
-├── package.json
 ├── .gitignore
 ├── README.md
+├── READMEejemplo.md
 ├── server/
-│   ├── app.js
-│   ├── .env
-│   ├── .env.example
-│   ├── package.json
+│   ├── app.js                   (punto de entrada del servidor Express)
+│   ├── .env                     (variables de entorno con valores activos)
+│   ├── .env.example             (plantilla de variables con valores de ejemplo)
+│   ├── .gitignore               (ignora node_modules/ y logs)
+│   ├── package.json             (scripts y dependencias del backend)
 │   ├── package-lock.json
 │   └── src/
 │       ├── config/
-│       │   └── db.js
-│       ├── controllers/
+│       │   └── db.js            (conexión a MongoDB con Mongoose)
+│       ├── controllers/         (controladores ligeros: gestionan req y res)
 │       │   ├── categoryController.js
 │       │   ├── clientController.js
 │       │   ├── localityController.js
@@ -648,34 +590,34 @@ distribuidora-agua/
 │       │   ├── userController.js
 │       │   └── zoneController.js
 │       ├── middleware/
-│       │   ├── errorHandler.js
-│       │   ├── loginRateLimiter.js
-│       │   ├── notFound.js
-│       │   ├── validate.js
-│       │   ├── validators/
-│       │   │   ├── categoryValidator.js
-│       │   │   ├── clientValidator.js
-│       │   │   ├── commonValidators.js
-│       │   │   ├── localityValidator.js
-│       │   │   ├── productValidator.js
-│       │   │   ├── userValidator.js
-│       │   │   └── zoneValidator.js
-│       │   └── verifyToken.js
-│       ├── models/
+│       │   ├── errorHandler.js   (manejador centralizado de errores)
+│       │   ├── loginRateLimiter.js (límite de peticiones contra fuerza bruta)
+│       │   ├── notFound.js       (captura de rutas 404 no existentes)
+│       │   ├── validate.js       (validador declarativo de esquemas Zod)
+│       │   ├── verifyToken.js    (protección de rutas mediante JWT)
+│       │   └── validators/       (esquemas de validación Zod por entidad)
+│       │       ├── categoryValidator.js
+│       │       ├── clientValidator.js
+│       │       ├── commonValidators.js
+│       │       ├── localityValidator.js
+│       │       ├── productValidator.js
+│       │       ├── userValidator.js
+│       │       └── zoneValidator.js
+│       ├── models/              (esquemas Mongoose y pre-save hook de bcrypt)
 │       │   ├── categoryModel.js
 │       │   ├── clientModel.js
 │       │   ├── localityModel.js
 │       │   ├── productModel.js
 │       │   ├── userModel.js
 │       │   └── zoneModel.js
-│       ├── routes/
+│       ├── routes/              (definición de rutas y mapeo a controladores)
 │       │   ├── categoryRoute.js
 │       │   ├── clientRoute.js
 │       │   ├── localityRoute.js
 │       │   ├── productRoute.js
 │       │   ├── userRoute.js
 │       │   └── zoneRoute.js
-│       ├── services/
+│       ├── services/            (capa de servicios: lógica de negocio y consultas)
 │       │   ├── categoryService.js
 │       │   ├── clientService.js
 │       │   ├── localityService.js
@@ -683,36 +625,40 @@ distribuidora-agua/
 │       │   ├── userService.js
 │       │   └── zoneService.js
 │       └── utils/
-│           ├── AppError.js
-│           ├── handleError.js
-│           └── seed.js
+│           ├── AppError.js      (clase personalizada para errores operacionales)
+│           ├── handleError.js   (utilidad para captura de errores asíncronos)
+│           └── seed.js          (script de datos iniciales de prueba)
 └── client/
-    ├── .env
-    ├── .env.example
-    ├── index.html
-    ├── package.json
+    ├── .env                     (variable de entorno VITE_API_URL)
+    ├── .env.example             (plantilla de variable de entorno para Vite)
+    ├── .gitignore               (ignora node_modules/ y dist/)
+    ├── index.html               (documento HTML raíz de la SPA)
+    ├── package.json             (scripts y dependencias del frontend)
     ├── package-lock.json
-    ├── vite.config.js
+    ├── vite.config.js           (configuración de Vite con plugin de React)
     └── src/
+        ├── App.jsx              (árbol de rutas y navegación)
+        ├── main.jsx             (punto de inicio React en el DOM)
         ├── api/
-        │   └── client.js
+        │   └── client.js        (cliente HTTP unificado con fetch y JWT)
         ├── components/
-        │   ├── ConfirmModal.jsx
-        │   ├── EntityCrud.jsx
-        │   ├── Layout.jsx
-        │   └── ProtectedRoute.jsx
+        │   ├── ConfirmModal.jsx (modal accesible con manejo de reglas de negocio)
+        │   ├── EntityCrud.jsx   (gestor genérico de operaciones CRUD)
+        │   ├── ErrorBoundary.jsx (captura de errores inesperados de React)
+        │   ├── Layout.jsx       (maquetación, barra superior y navegación lateral)
+        │   └── ProtectedRoute.jsx (guarda de rutas privadas)
         ├── context/
-        │   └── AuthContext.jsx
-        ├── hooks/
-        │   ├── AUDITORIA.md
-        │   ├── README.md
-        │   ├── useAuth.js
-        │   ├── useCrud.js
-        │   ├── useFetch.js
-        │   ├── useForm.js
-        │   ├── useModal.js
-        │   └── useTimedMessage.js
-        ├── pages/
+        │   └── AuthContext.jsx  (contexto de estado de usuario y autenticación)
+        ├── hooks/               (Custom Hooks desacoplados)
+        │   ├── AUDITORIA.md     (informe técnico de auditoría de hooks)
+        │   ├── README.md        (documentación de hooks del proyecto)
+        │   ├── useAuth.js       (consumo ágil del contexto de autenticación)
+        │   ├── useCrud.js       (lógica de estado CRUD y reglas de negocio)
+        │   ├── useFetch.js      (peticiones asíncronas con bandera de montaje)
+        │   ├── useForm.js       (control de campos, errores por campo y submit)
+        │   ├── useModal.js      (apertura, cierre y datos de modales)
+        │   └── useTimedMessage.js (notificaciones temporales con autocierre)
+        ├── pages/               (vistas completas de la aplicación)
         │   ├── CategoriesPage.jsx
         │   ├── ClientsPage.jsx
         │   ├── DashboardPage.jsx
@@ -721,8 +667,36 @@ distribuidora-agua/
         │   ├── LoginPage.jsx
         │   ├── ProductsPage.jsx
         │   └── ZonesPage.jsx
-        ├── styles/
-        │   └── main.css
-        ├── App.jsx
-        └── main.jsx
+        └── styles/
+            └── main.css         (estilos CSS3 mobile-first sin librerías pesadas)
 ```
+
+---
+
+## Despliegue
+
+El proyecto está preparado para desplegarse como dos aplicaciones independientes (Backend en Render/Railway y Frontend en Vercel/Netlify), conectadas a un clúster de MongoDB Atlas en la nube.
+
+### URLs del entorno productivo (Placeholders)
+- **API Backend:** `https://api-distribuidora-agua.onrender.com`
+- **Frontend Web:** `https://distribuidora-agua.vercel.app`
+- **Base de datos:** `mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority`
+
+### Variables de entorno por entorno
+
+#### Backend (`server/`)
+Configurar en el panel de hosting del backend:
+
+| Variable | Descripción | Valor de Ejemplo / Producción |
+|---|---|---|
+| `PORT` | Puerto HTTP donde corre el servidor | `3000` (o `$PORT` provisto por la plataforma) |
+| `MONGODB_URI` | Cadena de conexión completa a MongoDB Atlas | `mongodb+srv://admin:passSegura@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority` |
+| `JWT_SECRET` | Firma criptográfica para los tokens JWT emitidos | `supersecreto_jwt_para_produccion_2026` |
+| `JWT_EXPIRES_IN` | Tiempo de vida del token antes de expirar | `2h` |
+
+#### Frontend (`client/`)
+Configurar en el panel de hosting del frontend:
+
+| Variable | Descripción | Valor de Ejemplo / Producción |
+|---|---|---|
+| `VITE_API_URL` | URL base de los endpoints de la API REST que consume el frontend | `https://api-distribuidora-agua.onrender.com/api` |
