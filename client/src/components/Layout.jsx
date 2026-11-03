@@ -24,7 +24,7 @@ const Layout = () => {
       <aside className={`sidebar ${mobileMenu.isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <span className="brand-icon">💧</span>
-          <span className="brand-title">Agua Pura ERP</span>
+          <span className="brand-title">Nombre Emp.</span>
         </div>
 
         <nav className="sidebar-nav">
