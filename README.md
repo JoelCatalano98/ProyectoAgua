@@ -574,11 +574,14 @@ distribuidora-agua/
 ├── READMEejemplo.md
 ├── server/
 │   ├── app.js                   (punto de entrada del servidor Express)
+│   ├── vercel.json              (configuración de reescritura para serverless)
 │   ├── .env                     (variables de entorno con valores activos)
 │   ├── .env.example             (plantilla de variables con valores de ejemplo)
 │   ├── .gitignore               (ignora node_modules/ y logs)
 │   ├── package.json             (scripts y dependencias del backend)
 │   ├── package-lock.json
+│   ├── api/
+│   │   └── index.js             (punto de entrada serverless para Vercel)
 │   └── src/
 │       ├── config/
 │       │   └── db.js            (conexión a MongoDB con Mongoose)
@@ -632,6 +635,7 @@ distribuidora-agua/
     ├── .env                     (variable de entorno VITE_API_URL)
     ├── .env.example             (plantilla de variable de entorno para Vite)
     ├── .gitignore               (ignora node_modules/ y dist/)
+    ├── vercel.json              (reescritura de rutas para SPA en Vercel)
     ├── index.html               (documento HTML raíz de la SPA)
     ├── package.json             (scripts y dependencias del frontend)
     ├── package-lock.json
@@ -673,30 +677,78 @@ distribuidora-agua/
 
 ---
 
-## Despliegue
+## Despliegue en Vercel
 
-El proyecto está preparado para desplegarse como dos aplicaciones independientes (Backend en Render/Railway y Frontend en Vercel/Netlify), conectadas a un clúster de MongoDB Atlas en la nube.
+El proyecto está configurado para desplegarse en **Vercel** como dos proyectos independientes desde el mismo repositorio (arquitectura desacoplada en monorepo):
+1. **Backend (`server/`):** API RESTful ejecutada como Serverless Function sobre Node.js con Express, conexión cacheada reutilizable a MongoDB Atlas y mitigación de fuerza bruta con `trust proxy`.
+2. **Frontend (`client/`):** Single Page Application (SPA) construida con React y Vite, con reescritura de rutas hacia `index.html` para soporte de navegación directa y refresco con React Router.
+
+---
+
+### Paso a paso del despliegue
+
+#### 1. Desplegar el Backend primero (`server/`)
+1. En el panel de control de Vercel, hacer clic en **"Add New..."** > **"Project"** e importar este repositorio.
+2. Configurar los parámetros del proyecto:
+   - **Project Name:** `distribuidora-agua-api` (o el nombre preferido para la API).
+   - **Framework Preset:** `Other` (Node.js / Express Serverless).
+   - **Root Directory:** Hacer clic en *Edit* y seleccionar la carpeta `server`.
+   - **Build and Output Settings:** Dejar las opciones por defecto (Build Command y Output Directory vacíos).
+3. En la sección **Environment Variables**, agregar las siguientes variables:
+   | Variable | Valor de Ejemplo / Producción | Descripción |
+   |---|---|---|
+   | `MONGODB_URI` | `mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority` | Cadena de conexión al clúster de MongoDB Atlas |
+   | `JWT_SECRET` | `clave_secreta_super_segura_para_produccion_2026` | Clave secreta robusta para firma de tokens JWT |
+   | `JWT_EXPIRES_IN` | `2h` | Tiempo de vida del token antes de expirar |
+   *(Nota: la variable `CLIENT_URL` se completará en el paso 3 una vez conocido el dominio del frontend).*
+4. Hacer clic en **"Deploy"**.
+5. Al finalizar, Vercel asignará la URL pública del backend, por ejemplo:
+   `https://distribuidora-agua-api.vercel.app`
+
+#### 2. Desplegar el Frontend (`client/`)
+1. En Vercel, hacer clic nuevamente en **"Add New..."** > **"Project"** e importar el mismo repositorio.
+2. Configurar los parámetros del proyecto:
+   - **Project Name:** `distribuidora-agua-client` (o el nombre preferido para la web).
+   - **Framework Preset:** `Vite` (detectado automáticamente).
+   - **Root Directory:** Hacer clic en *Edit* y seleccionar la carpeta `client`.
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+3. En la sección **Environment Variables**, agregar:
+   | Variable | Valor de Ejemplo / Producción | Descripción |
+   |---|---|---|
+   | `VITE_API_URL` | `https://distribuidora-agua-api.vercel.app/api` | URL pública de la API desplegada en el paso 1 (con `/api` y **sin** barra final) |
+4. Hacer clic en **"Deploy"**.
+5. Al finalizar, Vercel asignará la URL pública del frontend, por ejemplo:
+   `https://distribuidora-agua-client.vercel.app`
+
+#### 3. Configurar `CLIENT_URL` en el Backend y Redeploy
+Para habilitar la protección CORS en producción y admitir peticiones legítimas del frontend:
+1. Ir al proyecto del backend en Vercel (`distribuidora-agua-api`) > **Settings** > **Environment Variables**.
+2. Crear o editar la variable:
+   - **Key:** `CLIENT_URL`
+   - **Value:** `https://distribuidora-agua-client.vercel.app` *(admite múltiples dominios separados por coma si se requiere)*.
+3. Ir a la pestaña **Deployments**, hacer clic en los tres puntos (`...`) del último despliegue y seleccionar **Redeploy** para aplicar los cambios de entorno.
+
+#### 4. Poblado inicial de datos en MongoDB Atlas (Seed)
+Para inicializar el catálogo de productos, zonas, localidades, clientes y el usuario administrador en la base de datos de producción:
+```bash
+cd server
+MONGODB_URI="mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority" npm run seed
+```
+> En **Windows PowerShell**:
+> ```powershell
+> cd server
+> $env:MONGODB_URI="mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority"
+> npm run seed
+> ```
+
+---
 
 ### URLs del entorno productivo (Placeholders)
-- **API Backend:** `https://api-distribuidora-agua.onrender.com`
-- **Frontend Web:** `https://distribuidora-agua.vercel.app`
-- **Base de datos:** `mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority`
+- **API Backend:** `https://distribuidora-agua-api.vercel.app`
+- **Frontend Web:** `https://distribuidora-agua-client.vercel.app`
+- **Base de Datos:** MongoDB Atlas Cluster (`mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority`)
 
-### Variables de entorno por entorno
-
-#### Backend (`server/`)
-Configurar en el panel de hosting del backend:
-
-| Variable | Descripción | Valor de Ejemplo / Producción |
-|---|---|---|
-| `PORT` | Puerto HTTP donde corre el servidor | `3000` (o `$PORT` provisto por la plataforma) |
-| `MONGODB_URI` | Cadena de conexión completa a MongoDB Atlas | `mongodb+srv://admin:passSegura@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority` |
-| `JWT_SECRET` | Firma criptográfica para los tokens JWT emitidos | `supersecreto_jwt_para_produccion_2026` |
-| `JWT_EXPIRES_IN` | Tiempo de vida del token antes de expirar | `2h` |
-
-#### Frontend (`client/`)
-Configurar en el panel de hosting del frontend:
-
-| Variable | Descripción | Valor de Ejemplo / Producción |
-|---|---|---|
-| `VITE_API_URL` | URL base de los endpoints de la API REST que consume el frontend | `https://api-distribuidora-agua.onrender.com/api` |
+### Usuario de prueba (cargado por el Seed)
+- **Email:** `admin@aguapura.com`
+- **Contraseña:** `admin1234`
