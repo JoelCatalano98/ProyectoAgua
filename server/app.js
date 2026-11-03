@@ -20,6 +20,9 @@ const AppError = require('./src/utils/AppError');
 
 const app = express();
 
+// Habilitar trust proxy para reverse proxies (Vercel / AWS Lambda) y express-rate-limit
+app.set('trust proxy', 1);
+
 // Configuración dinámica de CORS vía CLIENT_URL
 const allowedOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map((url) => url.trim()).filter(Boolean)
