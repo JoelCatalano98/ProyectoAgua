@@ -16,11 +16,43 @@ const userRoute = require('./src/routes/userRoute');
 // Importación de middlewares de error
 const notFound = require('./src/middleware/notFound');
 const errorHandler = require('./src/middleware/errorHandler');
+const AppError = require('./src/utils/AppError');
 
 const app = express();
 
+// Configuración dinámica de CORS vía CLIENT_URL
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map((url) => url.trim()).filter(Boolean)
+  : [];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Permitir peticiones sin origen (curl, Postman, llamadas directas o scripts)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // Si CLIENT_URL está configurada, validar explícitamente contra la lista
+    if (allowedOrigins.length > 0) {
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new AppError('No permitido por CORS', 403));
+    }
+
+    // En desarrollo (sin CLIENT_URL definida), permitir localhost en cualquier puerto
+    const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+    if (isLocalhost || process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+
+    return callback(new AppError('No permitido por CORS', 403));
+  },
+  credentials: true
+};
+
 // Middlewares globales
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Conexión a base de datos bajo demanda para entornos serverless
