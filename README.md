@@ -184,10 +184,10 @@ Desde la raíz del repositorio se pueden ejecutar directamente:
 |---|---|---|
 | `200 OK` | Éxito en la consulta, modificación o baja | Búsquedas, lecturas individuales, PUT y DELETE exitosos |
 | `201 Created` | Creación exitosa de recurso | POST exitoso en usuarios, productos, zonas, localidades, etc. |
-| `400 Bad Request` | Error en la solicitud o regla de negocio | Faltan campos requeridos, validaciones de Zod fallidas (con `detalles`), formato inválido, referencias inexistentes o bloqueo por registros dependientes |
+| `400 Bad Request` | Error en la solicitud | Faltan campos requeridos, validaciones de Zod fallidas (con `detalles`), formato inválido o cuerpo JSON mal formado |
 | `401 Unauthorized` | Fallo de autenticación | Token ausente, token expirado, token alterado o credenciales de login incorrectas |
 | `404 Not Found` | Recurso o ruta no encontrada | Documento inexistente o ruta/endpoint no mapeado |
-| `409 Conflict` | Conflicto por recurso duplicado | Intento de registrar un elemento con un campo único ya existente (nombre de categoría/zona, email de usuario) |
+| `409 Conflict` | Conflicto con el estado actual del recurso | Recurso duplicado por clave única (nombre de categoría/zona, email) o bloqueo por regla de negocio al intentar eliminar un registro con dependencias (categoría con productos, zona con localidades, localidad con clientes) |
 | `429 Too Many Requests` | Límite de peticiones excedido | Exceso de intentos fallidos de autenticación en login (rate limiting por IP) |
 | `500 Internal Error` | Error de servidor no controlado | Fallo inesperado capturado por el middleware global (oculta trazas al cliente) |
 
@@ -201,7 +201,7 @@ Desde la raíz del repositorio se pueden ejecutar directamente:
 | `GET` | `/api/categories/:id` | Detalle de una categoría por su ID | No |
 | `POST` | `/api/categories` | Alta de nueva categoría | Sí |
 | `PUT` | `/api/categories/:id` | Modificación de datos de categoría | Sí |
-| `DELETE` | `/api/categories/:id` | Eliminación de categoría (valida que no tenga productos) | Sí |
+| `DELETE` | `/api/categories/:id` | Eliminación de categoría (falla con 409 si tiene productos asociados) | Sí |
 | `GET` | `/api/products` | Listado de productos (admite filtro `?categoria=`) | No |
 | `GET` | `/api/products/:id` | Detalle de un producto con categoría poblada | No |
 | `POST` | `/api/products` | Alta de producto (valida existencia de categoría) | Sí |
@@ -212,12 +212,12 @@ Desde la raíz del repositorio se pueden ejecutar directamente:
 | `GET` | `/api/zones/:id/hoja-de-ruta` | Clientes activos de la zona ordenados por localidad y calle | No |
 | `POST` | `/api/zones` | Alta de nueva zona logística | Sí |
 | `PUT` | `/api/zones/:id` | Actualización de zona y días de atención | Sí |
-| `DELETE` | `/api/zones/:id` | Eliminación de zona (valida que no tenga localidades) | Sí |
+| `DELETE` | `/api/zones/:id` | Eliminación de zona (falla con 409 si tiene localidades asociadas) | Sí |
 | `GET` | `/api/localities` | Listado de localidades con zona poblada (filtro `?zona=`) | No |
 | `GET` | `/api/localities/:id` | Detalle de localidad con zona poblada | No |
 | `POST` | `/api/localities` | Alta de localidad (valida existencia de la zona) | Sí |
 | `PUT` | `/api/localities/:id` | Modificación parcial de localidad | Sí |
-| `DELETE` | `/api/localities/:id` | Eliminación de localidad (valida que no tenga clientes) | Sí |
+| `DELETE` | `/api/localities/:id` | Eliminación de localidad (falla con 409 si tiene clientes asociados) | Sí |
 | `GET` | `/api/clients` | Listado con localidad y zona pobladas (`?zona=`, `?localidad=`, `?activo=`) | No |
 | `GET` | `/api/clients/:id` | Detalle de cliente con localidad y zona anidadas | No |
 | `POST` | `/api/clients` | Alta de cliente (valida existencia de localidad) | Sí |
@@ -301,7 +301,7 @@ Desde la raíz del repositorio se pueden ejecutar directamente:
   ```
 
 #### DELETE `/api/categories/:id`
-- **Response `400 Bad Request` (Violación de regla de negocio: tiene productos vinculados):**
+- **Response `409 Conflict` (Violación de regla de negocio: tiene productos asociados):**
   ```json
   {
     "ok": false,
@@ -440,11 +440,19 @@ Todas las respuestas de error de la API utilizan una estructura unificada y pred
 }
 ```
 
-#### Error 409 Conflict (Recurso duplicado por clave única)
+#### Error 409 Conflict (Recurso duplicado o violación de regla de negocio por dependencias)
+- **Por clave única duplicada:**
 ```json
 {
   "ok": false,
   "message": "Ya existe una categoría con ese nombre"
+}
+```
+- **Por eliminación de recurso con entidades asociadas:**
+```json
+{
+  "ok": false,
+  "message": "No se puede eliminar la categoría porque tiene 2 productos asociados"
 }
 ```
 

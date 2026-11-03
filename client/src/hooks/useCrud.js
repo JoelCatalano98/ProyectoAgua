@@ -15,6 +15,7 @@ import api from '../api/client';
  *   errorStatus: number|null,
  *   errorDetalles: Array,
  *   detalles: Array,
+ *   isBusinessRuleError: boolean,
  *   success: string,
  *   loadItems: () => Promise<Array>,
  *   createItem: (data: object) => Promise<any>,
@@ -152,6 +153,9 @@ export const useCrud = (endpoint, options = {}) => {
     errorStatus,
     errorDetalles,
     detalles: errorDetalles,
+    isBusinessRuleError: Boolean(
+      error && (errorStatus === 400 || errorStatus === 409)
+    ),
     success,
     loadItems,
     createItem,

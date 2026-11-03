@@ -52,7 +52,7 @@ const deleteCategory = async (id) => {
     const pluralText = productCount === 1 ? '1 producto asociado' : `${productCount} productos asociados`;
     throw new AppError(
       `No se puede eliminar la categoría porque tiene ${pluralText}`,
-      400
+      409
     );
   }
 

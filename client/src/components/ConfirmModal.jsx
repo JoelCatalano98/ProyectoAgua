@@ -29,8 +29,10 @@ const ConfirmModal = ({
 
   if (!isOpen) return null;
 
-  // Es un error por regla de negocio de la API (HTTP 400)
-  const isBusinessRuleError = Boolean(error && errorStatus === 400);
+  // Es un error por regla de negocio de la API (HTTP 400 o 409)
+  const isBusinessRuleError = Boolean(
+    error && (errorStatus === 400 || errorStatus === 409)
+  );
 
   const handleOverlayClick = () => {
     if (!loading) {

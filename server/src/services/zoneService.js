@@ -53,7 +53,7 @@ const deleteZone = async (id) => {
     const pluralText = localityCount === 1 ? '1 localidad asociada' : `${localityCount} localidades asociadas`;
     throw new AppError(
       `No se puede eliminar la zona porque tiene ${pluralText}`,
-      400
+      409
     );
   }
 

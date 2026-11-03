@@ -62,7 +62,7 @@ const deleteLocality = async (id) => {
     const pluralText = clientCount === 1 ? '1 cliente asociado' : `${clientCount} clientes asociados`;
     throw new AppError(
       `No se puede eliminar la localidad porque tiene ${pluralText}`,
-      400
+      409
     );
   }
 
