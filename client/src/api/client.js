@@ -1,4 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const rawApiUrl =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? 'http://localhost:3000/api' : '');
+
+const API_URL = rawApiUrl ? rawApiUrl.replace(/\/+$/, '') : '';
 
 let unauthorizedHandler = null;
 
@@ -11,9 +15,10 @@ export const setUnauthorizedHandler = (handler) => {
  * Adjunta token de localStorage y maneja respuestas 401 via callback registrado.
  */
 async function request(endpoint, options = {}) {
-  const url = new URL(
-    endpoint.startsWith('/') ? `${API_URL}${endpoint}` : `${API_URL}/${endpoint}`
-  );
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = API_URL
+    ? new URL(`${API_URL}${cleanEndpoint}`)
+    : new URL(cleanEndpoint, window.location.origin);
 
   if (options.params) {
     Object.entries(options.params).forEach(([key, val]) => {
