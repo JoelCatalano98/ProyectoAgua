@@ -1,10 +1,80 @@
-# Sistema de Gestión de Reparto de Agua (Bidones y Dispensers) - Proyecto Final UTN BA
+# Sistema de Gestión de Reparto de Agua (Bidones y Dispensers) — TP Final Backend UTN BA
 
-API RESTful desarrollada con Node.js, Express y MongoDB (Mongoose) aplicando arquitectura por capas con separación estricta de controladores y capa de servicios, complementada con un panel de administración web responsive desarrollado en React + Vite.
+API RESTful desarrollada con Node.js, Express y MongoDB (Mongoose) aplicando arquitectura por capas con separación estricta de controladores y capa de servicios, complementada con un panel de administración web responsive desarrollado en React + Vite (`client/`).
 
-El sistema representa la Fase 1 del ciclo de vida operativo de una distribuidora de agua purificada, contemplando la gestión integral del catálogo de productos y servicios (bidones retornables, equipos dispensers frío/calor, sanitizaciones), delimitación geográfica por zonas de reparto y días de atención, localidades atendidas, cartera de clientes con control de envases y saldos, y autenticación segura para administradores y repartidores.
+El sistema administra el catálogo comercial de productos y servicios de una distribuidora de agua purificada, su delimitación logística por zonas y localidades, su cartera de clientes con cuenta corriente y la autenticación de operadores mediante JWT.
 
 **Autor:** Joel Catalano
+
+---
+
+## Qué pide la consigna: obligatorio y opcional
+
+| | Significa |
+|---|---|
+| 🔴 | **Obligatorio.** Lo pide la consigna. Sin esto, el TP no aprueba |
+| 🟡 | **Opcional.** La consigna lo marca como opcional. Acá está hecho igual |
+| ⚪ | **Extra.** No lo pide la consigna. Se agregó porque mejora el proyecto |
+
+### 🔴 Obligatorio
+
+| Requisito | Dónde está |
+|---|---|
+| Node.js + Express + MongoDB (Mongoose) | Todo el backend (`server/`) |
+| **Productos**: nombre, descripción, precio, stock y categoría (referencia) | `server/src/models/productModel.js` |
+| **Productos**: todas las operaciones CRUD | `server/src/routes/productRoute.js` |
+| **Categorías**: nombre y descripción | `server/src/models/categoryModel.js` |
+| **Categorías**: operaciones GET, POST, PUT y DELETE | `server/src/routes/categoryRoute.js` |
+| **Capa de servicios**: toda la lógica de negocio y las llamadas a Mongoose | `server/src/services/` |
+| **Controladores ligeros**: solo manejan HTTP y delegan al servicio | `server/src/controllers/` |
+| **Relación** Producto → Categoría | `server/src/models/productModel.js` (campo `categoria`) |
+| **`populate`** en las lecturas de productos | `server/src/services/productService.js` |
+| Códigos HTTP apropiados (200, 201, 400, 401, 404, 409, 500) | `server/src/controllers/` y `server/src/middleware/errorHandler.js` |
+| Manejo de excepciones con `try/catch` | Controladores en `server/src/controllers/` |
+| **dotenv** para las variables sensibles | `server/app.js`, `server/.env` |
+| **CORS** habilitado en la aplicación principal | `server/app.js` |
+| La estructura de directorios pedida | Carpeta `server/` (ver [Estructura del repositorio](#estructura-del-repositorio)) |
+| README con los puntos de la entrega | Este archivo |
+| `.env` de ejemplo | `server/.env.example` |
+
+> **Un detalle sobre bcrypt.** La consigna lo pide sin marcarlo como opcional, pero sirve para
+> hashear la contraseña **del usuario**, y la entidad Usuarios sí es opcional. O sea: si tu
+> proyecto no tiene usuarios, no hay contraseña que hashear. Si los tiene —como este—, bcrypt
+> con pre-save hook es 🔴 obligatorio.
+
+### 🟡 Opcional (hecho igual en este proyecto)
+
+| Requisito | Dónde está |
+|---|---|
+| Entidad **Usuarios** (nombre, email, contraseña, rol) | `server/src/models/userModel.js` |
+| **bcrypt** con *pre-save hook* para hashear la contraseña | `server/src/models/userModel.js` (hook `pre('save')`) |
+| **JWT**: ruta de login que genera el token | `POST /api/users/login` (`server/src/routes/userRoute.js`, `server/src/controllers/userController.js`) |
+| **JWT**: middleware que verifica el token y protege rutas sensibles | `server/src/middleware/verifyToken.js` |
+| Frontend | Desarrollado de forma completa en `client/` (React + Vite + React Router; opcional según la consigna) |
+
+### ⚪ Extras (no los pide la consigna)
+
+| Extra | Por qué está / Dónde está |
+|---|---|
+| **Frontend completo (`client/`)** | Panel web SPA responsive para operar todo el sistema comercial y logístico |
+| **Entidades de Zonas, Localidades y Clientes** | Ampliación del dominio con relaciones 1:N y populate anidado (`server/src/models/`, `server/src/routes/`, `server/src/services/`) |
+| **Hoja de ruta logística** | Generación de hoja de reparto ordenada por zona y localidad con vista de impresión (`server/src/services/zoneService.js`, `client/src/pages/HojaRutaPage.jsx`) |
+| **Validaciones rigurosas con Zod** | Validación estricta de esquema en body, params y query con reporte detallado de errores por campo (`server/src/middleware/validators/`, `server/src/middleware/validate.js`) |
+| **Rate limiting en login** | Mitigación de ataques de fuerza bruta mediante `express-rate-limit` (HTTP 429) (`server/src/middleware/loginRateLimiter.js`) |
+| **Custom Hooks desacoplados** | Modularización de lógica en React (`client/src/hooks/`: `useCrud`, `useForm`, `useFetch`, `useAuth`, `useModal`, `useTimedMessage`) |
+| **`PATCH` además de `PUT` en productos** | `PATCH /api/products/:id` para actualización parcial de campos sin requerir el documento entero (`server/src/routes/productRoute.js`, `server/src/controllers/productController.js`) |
+| **Manejo de errores centralizado** | Middleware `server/src/middleware/errorHandler.js` que unifica respuestas JSON de error y traduce fallos de Mongoose y Zod |
+| **Protección contra borrado con dependencias (HTTP 409)** | Impide eliminar categorías con productos, zonas con localidades y localidades con clientes (`server/src/services/`) |
+| **Verificación de existencia de referencias** | Validación en servicios de que categorías, zonas y localidades referenciadas existan antes de asociarlas |
+| **Filtros avanzados por query params** | Filtrado en productos (`?categoria=`), localidades (`?zona=`) y clientes (`?zona=`, `?localidad=`, `?activo=`) |
+| **Seed de base de datos** | Script `npm run seed` con catálogo y clientes de ejemplo para probar la aplicación inmediatamente (`server/src/utils/seed.js`) |
+| **Ruta `GET /` de bienvenida** | Endpoint base con información y estado de la API (`server/app.js`) |
+
+### Lo que la consigna permite cambiar
+
+- **El dominio es libre.** Se pueden usar colecciones distintas a Productos y Categorías, siempre que **al menos un campo sea una referencia** a otra colección (en este proyecto se modelaron Productos → Categorías, Localidades → Zonas y Clientes → Localidades).
+- El frontend no es obligatorio (en este proyecto se desarrolló una SPA completa en `client/`).
+- Si no querés entregar el `.env` por seguridad, hay que hostear la aplicación (acá se versiona `server/.env` según lo requerido por la consigna y se provee `server/.env.example` como plantilla).
 
 ---
 
