@@ -1,57 +1,56 @@
 const zoneService = require('../services/zoneService');
-const handleError = require('../utils/handleError');
 
-const getAll = async (req, res) => {
+const getAll = async (req, res, next) => {
   try {
     const zones = await zoneService.getAllZones();
     res.status(200).json(zones);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const getById = async (req, res) => {
+const getById = async (req, res, next) => {
   try {
     const zone = await zoneService.getZoneById(req.params.id);
     res.status(200).json(zone);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const create = async (req, res) => {
+const create = async (req, res, next) => {
   try {
     const zone = await zoneService.createZone(req.body);
     res.status(201).json(zone);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const update = async (req, res) => {
+const update = async (req, res, next) => {
   try {
     const zone = await zoneService.updateZone(req.params.id, req.body);
     res.status(200).json(zone);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const remove = async (req, res) => {
+const remove = async (req, res, next) => {
   try {
     const result = await zoneService.deleteZone(req.params.id);
     res.status(200).json(result);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const getHojaDeRuta = async (req, res) => {
+const getHojaDeRuta = async (req, res, next) => {
   try {
     const data = await zoneService.getHojaDeRuta(req.params.id);
     res.status(200).json(data);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 

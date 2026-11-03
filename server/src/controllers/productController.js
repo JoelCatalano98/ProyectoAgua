@@ -1,48 +1,47 @@
 const productService = require('../services/productService');
-const handleError = require('../utils/handleError');
 
-const getAll = async (req, res) => {
+const getAll = async (req, res, next) => {
   try {
     const products = await productService.getAllProducts(req.query);
     res.status(200).json(products);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const getById = async (req, res) => {
+const getById = async (req, res, next) => {
   try {
     const product = await productService.getProductById(req.params.id);
     res.status(200).json(product);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const create = async (req, res) => {
+const create = async (req, res, next) => {
   try {
     const product = await productService.createProduct(req.body);
     res.status(201).json(product);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const update = async (req, res) => {
+const update = async (req, res, next) => {
   try {
     const product = await productService.updateProduct(req.params.id, req.body);
     res.status(200).json(product);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const remove = async (req, res) => {
+const remove = async (req, res, next) => {
   try {
     const result = await productService.deleteProduct(req.params.id);
     res.status(200).json(result);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 

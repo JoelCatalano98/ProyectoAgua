@@ -1,48 +1,47 @@
 const categoryService = require('../services/categoryService');
-const handleError = require('../utils/handleError');
 
-const getAll = async (req, res) => {
+const getAll = async (req, res, next) => {
   try {
     const categories = await categoryService.getAllCategories();
     res.status(200).json(categories);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const getById = async (req, res) => {
+const getById = async (req, res, next) => {
   try {
     const category = await categoryService.getCategoryById(req.params.id);
     res.status(200).json(category);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const create = async (req, res) => {
+const create = async (req, res, next) => {
   try {
     const category = await categoryService.createCategory(req.body);
     res.status(201).json(category);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const update = async (req, res) => {
+const update = async (req, res, next) => {
   try {
     const category = await categoryService.updateCategory(req.params.id, req.body);
     res.status(200).json(category);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const remove = async (req, res) => {
+const remove = async (req, res, next) => {
   try {
     const result = await categoryService.deleteCategory(req.params.id);
     res.status(200).json(result);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 

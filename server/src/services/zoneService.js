@@ -21,7 +21,7 @@ const createZone = async (data) => {
   }
   const existing = await Zone.findOne({ nombre: data.nombre.trim() });
   if (existing) {
-    throw new AppError('Ya existe una zona con ese nombre', 400);
+    throw new AppError('Ya existe una zona con ese nombre', 409);
   }
   return Zone.create(data);
 };
@@ -34,7 +34,7 @@ const updateZone = async (id, data) => {
   if (data.nombre && data.nombre.trim() !== zone.nombre) {
     const existing = await Zone.findOne({ nombre: data.nombre.trim() });
     if (existing && existing._id.toString() !== id) {
-      throw new AppError('Ya existe una zona con ese nombre', 400);
+      throw new AppError('Ya existe una zona con ese nombre', 409);
     }
   }
   Object.assign(zone, data);
@@ -50,8 +50,9 @@ const deleteZone = async (id) => {
   // Regla de negocio: No permitir borrar una Zone con localidades
   const localityCount = await Locality.countDocuments({ zona: id });
   if (localityCount > 0) {
+    const pluralText = localityCount === 1 ? '1 localidad asociada' : `${localityCount} localidades asociadas`;
     throw new AppError(
-      `No se puede eliminar la zona porque tiene ${localityCount} localidad(es) asociada(s)`,
+      `No se puede eliminar la zona porque tiene ${pluralText}`,
       400
     );
   }

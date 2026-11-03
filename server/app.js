@@ -13,24 +13,15 @@ const localityRoute = require('./src/routes/localityRoute');
 const clientRoute = require('./src/routes/clientRoute');
 const userRoute = require('./src/routes/userRoute');
 
+// Importación de middlewares de error
+const notFound = require('./src/middleware/notFound');
+const errorHandler = require('./src/middleware/errorHandler');
+
 const app = express();
 
 // Middlewares globales
 app.use(cors());
 app.use(express.json());
-
-// Handler para JSON mal formado (400)
-app.use((err, req, res, next) => {
-  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    return res.status(400).json({
-      status: 'error',
-      statusCode: 400,
-      message: 'JSON mal formado en el cuerpo de la petición',
-      error: 'JSON mal formado en el cuerpo de la petición'
-    });
-  }
-  next(err);
-});
 
 // Ruta base informativa
 app.get('/api', (req, res) => {
@@ -49,26 +40,11 @@ app.use('/api/localities', localityRoute);
 app.use('/api/clients', clientRoute);
 app.use('/api/users', userRoute);
 
-// Handler 404 para rutas inexistentes
-app.use((req, res) => {
-  res.status(404).json({
-    status: 'error',
-    statusCode: 404,
-    message: `Ruta no encontrada: ${req.method} ${req.originalUrl}`,
-    error: `Ruta no encontrada: ${req.method} ${req.originalUrl}`
-  });
-});
+// Middleware 404 para rutas inexistentes
+app.use(notFound);
 
-// Manejador de error general de express
-app.use((err, req, res, next) => {
-  console.error('Error no controlado en la app:', err);
-  res.status(500).json({
-    status: 'error',
-    statusCode: 500,
-    message: 'Error interno del servidor',
-    error: err.message || 'Error interno del servidor'
-  });
-});
+// Middleware central de manejo de errores
+app.use(errorHandler);
 
 // Levantar servidor solo si es ejecutado directamente
 if (require.main === module) {

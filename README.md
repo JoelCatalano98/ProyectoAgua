@@ -92,6 +92,8 @@ El sistema representa la Fase 1 del ciclo de vida operativo de una distribuidora
   - **Express 4** (Framework HTTP y enrutamiento minimalista)
   - **MongoDB** (Base de datos documental NoSQL)
   - **Mongoose 8** (Modelado de datos ODM, esquemas con validaciones y hooks asincrónicos)
+  - **Zod 3** (Validación rigurosa de esquemas en body, params y query con tipado estricto)
+  - **express-rate-limit** (Limitador de peticiones para mitigación de fuerza bruta en login)
   - **JSON Web Token (jsonwebtoken)** (Autenticación sin estado mediante tokens firmados)
   - **bcrypt** (Hasheo salteado y verificación unidireccional de contraseñas)
   - **CORS** (Control de acceso HTTP entre orígenes)
@@ -182,10 +184,12 @@ Desde la raíz del repositorio se pueden ejecutar directamente:
 |---|---|---|
 | `200 OK` | Éxito en la consulta, modificación o baja | Búsquedas, lecturas individuales, PUT y DELETE exitosos |
 | `201 Created` | Creación exitosa de recurso | POST exitoso en usuarios, productos, zonas, localidades, etc. |
-| `400 Bad Request` | Error en la solicitud o regla de negocio | Faltan campos requeridos, formato inválido, referencias inexistentes o bloqueo por registros dependientes |
+| `400 Bad Request` | Error en la solicitud o regla de negocio | Faltan campos requeridos, validaciones de Zod fallidas (con `detalles`), formato inválido, referencias inexistentes o bloqueo por registros dependientes |
 | `401 Unauthorized` | Fallo de autenticación | Token ausente, token expirado, token alterado o credenciales de login incorrectas |
-| `404 Not Found` | Recurso no encontrado | Documento inexistente o ruta/endpoint no mapeado |
-| `500 Internal Error` | Error de servidor no controlado | Fallo no previsto capturado por el middleware global |
+| `404 Not Found` | Recurso o ruta no encontrada | Documento inexistente o ruta/endpoint no mapeado |
+| `409 Conflict` | Conflicto por recurso duplicado | Intento de registrar un elemento con un campo único ya existente (nombre de categoría/zona, email de usuario) |
+| `429 Too Many Requests` | Límite de peticiones excedido | Exceso de intentos fallidos de autenticación en login (rate limiting por IP) |
+| `500 Internal Error` | Error de servidor no controlado | Fallo inesperado capturado por el middleware global (oculta trazas al cliente) |
 
 ### Endpoints de la API
 
@@ -249,10 +253,8 @@ Desde la raíz del repositorio se pueden ejecutar directamente:
 - **Response `401 Unauthorized` (Credenciales erróneas o email inexistente):**
   ```json
   {
-    "status": "error",
-    "statusCode": 401,
-    "message": "Credenciales inválidas",
-    "error": "Credenciales inválidas"
+    "ok": false,
+    "message": "Credenciales inválidas"
   }
   ```
 
@@ -302,10 +304,8 @@ Desde la raíz del repositorio se pueden ejecutar directamente:
 - **Response `400 Bad Request` (Violación de regla de negocio: tiene productos vinculados):**
   ```json
   {
-    "status": "error",
-    "statusCode": 400,
-    "message": "No se puede eliminar la categoría porque tiene 2 producto(s) asociado(s)",
-    "error": "No se puede eliminar la categoría porque tiene 2 producto(s) asociado(s)"
+    "ok": false,
+    "message": "No se puede eliminar la categoría porque tiene 2 productos asociados"
   }
   ```
 
@@ -342,10 +342,8 @@ Desde la raíz del repositorio se pueden ejecutar directamente:
 - **Response `400 Bad Request` (Categoría inexistente):**
   ```json
   {
-    "status": "error",
-    "statusCode": 400,
-    "message": "La categoría especificada no existe",
-    "error": "La categoría especificada no existe"
+    "ok": false,
+    "message": "La categoría especificada no existe"
   }
   ```
 
@@ -380,47 +378,92 @@ Desde la raíz del repositorio se pueden ejecutar directamente:
   ]
   ```
 
-### Ejemplos de Respuestas de Error Globales
+### Formato Único de Error y Respuestas Globales
 
-#### Error 401 (Token ausente)
+Todas las respuestas de error de la API utilizan una estructura unificada y predecible:
+
 ```json
 {
-  "status": "error",
-  "statusCode": 401,
-  "message": "Token no proporcionado",
-  "error": "Token no proporcionado"
+  "ok": false,
+  "message": "Descripción clara del error",
+  "detalles": [
+    {
+      "campo": "nombreDelCampo",
+      "mensaje": "Motivo específico del fallo de validación"
+    }
+  ]
 }
 ```
 
-#### Error 401 (Token expirado)
+*Nota: La propiedad `detalles` es opcional y se incluye cuando existen errores de validación a nivel de campo.*
+
+#### Error 400 Bad Request (Validación de datos con Zod)
 ```json
 {
-  "status": "error",
-  "statusCode": 401,
-  "message": "Token expirado",
-  "error": "Token expirado"
+  "ok": false,
+  "message": "Error de validación en los datos enviados",
+  "detalles": [
+    {
+      "campo": "precio",
+      "mensaje": "El precio no puede ser negativo"
+    },
+    {
+      "campo": "categoria",
+      "mensaje": "El identificador de categoría no es un ObjectId válido de 24 caracteres hexadecimales"
+    }
+  ]
 }
 ```
 
-#### Error 404 (Ruta inexistente)
+#### Error 400 Bad Request (Cuerpo JSON mal formado)
 ```json
 {
-  "status": "error",
-  "statusCode": 404,
-  "message": "Ruta no encontrada: GET /api/ruta-desconocida",
-  "error": "Ruta no encontrada: GET /api/ruta-desconocida"
+  "ok": false,
+  "message": "JSON mal formado en el cuerpo de la petición"
 }
 ```
 
-#### Error 400 (Cuerpo JSON mal formado)
+#### Error 401 Unauthorized (Token ausente o inválido)
 ```json
 {
-  "status": "error",
-  "statusCode": 400,
-  "message": "JSON mal formado en el cuerpo de la petición",
-  "error": "JSON mal formado en el cuerpo de la petición"
+  "ok": false,
+  "message": "Token no proporcionado"
 }
 ```
+*(O `"Token expirado"` / `"Token inválido"` si el JWT caducó o fue adulterado).*
+
+#### Error 404 Not Found (Ruta inexistente o recurso no encontrado)
+```json
+{
+  "ok": false,
+  "message": "Ruta no encontrada: GET /api/ruta-desconocida"
+}
+```
+
+#### Error 409 Conflict (Recurso duplicado por clave única)
+```json
+{
+  "ok": false,
+  "message": "Ya existe una categoría con ese nombre"
+}
+```
+
+#### Error 429 Too Many Requests (Rate limit excedido en login)
+```json
+{
+  "ok": false,
+  "message": "Demasiados intentos de inicio de sesión desde esta IP. Por favor, intente nuevamente en 15 minutos."
+}
+```
+
+#### Error 500 Internal Server Error (Error interno no previsto)
+```json
+{
+  "ok": false,
+  "message": "Error interno del servidor"
+}
+```
+*(El detalle del stacktrace y causa técnica se loguea en la consola del servidor pero nunca se expone al cliente).*
 
 ---
 
@@ -501,6 +544,18 @@ distribuidora-agua/
 │       │   ├── userController.js
 │       │   └── zoneController.js
 │       ├── middleware/
+│       │   ├── errorHandler.js
+│       │   ├── loginRateLimiter.js
+│       │   ├── notFound.js
+│       │   ├── validate.js
+│       │   ├── validators/
+│       │   │   ├── categoryValidator.js
+│       │   │   ├── clientValidator.js
+│       │   │   ├── commonValidators.js
+│       │   │   ├── localityValidator.js
+│       │   │   ├── productValidator.js
+│       │   │   ├── userValidator.js
+│       │   │   └── zoneValidator.js
 │       │   └── verifyToken.js
 │       ├── models/
 │       │   ├── categoryModel.js
@@ -544,6 +599,15 @@ distribuidora-agua/
         │   └── ProtectedRoute.jsx
         ├── context/
         │   └── AuthContext.jsx
+        ├── hooks/
+        │   ├── AUDITORIA.md
+        │   ├── README.md
+        │   ├── useAuth.js
+        │   ├── useCrud.js
+        │   ├── useFetch.js
+        │   ├── useForm.js
+        │   ├── useModal.js
+        │   └── useTimedMessage.js
         ├── pages/
         │   ├── CategoriesPage.jsx
         │   ├── ClientsPage.jsx

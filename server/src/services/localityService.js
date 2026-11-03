@@ -59,8 +59,9 @@ const deleteLocality = async (id) => {
   // Regla de negocio: No permitir borrar una Locality con clientes
   const clientCount = await Client.countDocuments({ localidad: id });
   if (clientCount > 0) {
+    const pluralText = clientCount === 1 ? '1 cliente asociado' : `${clientCount} clientes asociados`;
     throw new AppError(
-      `No se puede eliminar la localidad porque tiene ${clientCount} cliente(s) asociado(s)`,
+      `No se puede eliminar la localidad porque tiene ${pluralText}`,
       400
     );
   }

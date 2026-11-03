@@ -9,7 +9,7 @@ const registerUser = async ({ nombre, email, password, rol }) => {
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    throw new AppError('El correo electrónico ya se encuentra registrado', 400);
+    throw new AppError('El correo electrónico ya se encuentra registrado', 409);
   }
 
   const user = await User.create({

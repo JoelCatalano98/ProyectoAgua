@@ -1,48 +1,47 @@
 const clientService = require('../services/clientService');
-const handleError = require('../utils/handleError');
 
-const getAll = async (req, res) => {
+const getAll = async (req, res, next) => {
   try {
     const clients = await clientService.getAllClients(req.query);
     res.status(200).json(clients);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const getById = async (req, res) => {
+const getById = async (req, res, next) => {
   try {
     const client = await clientService.getClientById(req.params.id);
     res.status(200).json(client);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const create = async (req, res) => {
+const create = async (req, res, next) => {
   try {
     const client = await clientService.createClient(req.body);
     res.status(201).json(client);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const update = async (req, res) => {
+const update = async (req, res, next) => {
   try {
     const client = await clientService.updateClient(req.params.id, req.body);
     res.status(200).json(client);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const remove = async (req, res) => {
+const remove = async (req, res, next) => {
   try {
     const result = await clientService.deleteClient(req.params.id);
     res.status(200).json(result);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 

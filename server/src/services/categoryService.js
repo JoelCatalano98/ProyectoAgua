@@ -20,7 +20,7 @@ const createCategory = async (data) => {
   }
   const existing = await Category.findOne({ nombre: data.nombre.trim() });
   if (existing) {
-    throw new AppError('Ya existe una categoría con ese nombre', 400);
+    throw new AppError('Ya existe una categoría con ese nombre', 409);
   }
   return Category.create(data);
 };
@@ -33,7 +33,7 @@ const updateCategory = async (id, data) => {
   if (data.nombre && data.nombre.trim() !== category.nombre) {
     const existing = await Category.findOne({ nombre: data.nombre.trim() });
     if (existing && existing._id.toString() !== id) {
-      throw new AppError('Ya existe una categoría con ese nombre', 400);
+      throw new AppError('Ya existe una categoría con ese nombre', 409);
     }
   }
   Object.assign(category, data);
@@ -49,8 +49,9 @@ const deleteCategory = async (id) => {
   // Regla de negocio: No permitir borrar una Category con productos
   const productCount = await Product.countDocuments({ categoria: id });
   if (productCount > 0) {
+    const pluralText = productCount === 1 ? '1 producto asociado' : `${productCount} productos asociados`;
     throw new AppError(
-      `No se puede eliminar la categoría porque tiene ${productCount} producto(s) asociado(s)`,
+      `No se puede eliminar la categoría porque tiene ${pluralText}`,
       400
     );
   }

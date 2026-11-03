@@ -1,25 +1,24 @@
 const userService = require('../services/userService');
-const handleError = require('../utils/handleError');
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   try {
     const user = await userService.registerUser(req.body);
     res.status(201).json({
-      status: 'success',
+      ok: true,
       message: 'Usuario registrado exitosamente',
       user
     });
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const result = await userService.loginUser(req.body);
     res.status(200).json(result);
   } catch (error) {
-    handleError(error, res);
+    next(error);
   }
 };
 
