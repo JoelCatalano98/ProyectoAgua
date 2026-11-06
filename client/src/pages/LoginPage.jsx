@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useForm } from '../hooks/useForm';
+import { useSettings } from '../hooks/useSettings';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const LoginPage = () => {
   const { login } = useAuth();
+  const { nombreEmpresa, loading: settingsLoading } = useSettings();
   const navigate = useNavigate();
   const location = useLocation();
   const [isRateLimited, setIsRateLimited] = useState(false);
@@ -110,7 +112,7 @@ const LoginPage = () => {
       <div className="login-card">
         <div className="login-header">
           <div className="login-logo">💧</div>
-          <h2>Agua Pura</h2>
+          <h2>{settingsLoading ? '\u00A0' : (nombreEmpresa || 'Panel de Gestión')}</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
             Panel de Administración y Reparto
           </p>
@@ -145,7 +147,7 @@ const LoginPage = () => {
               name="email"
               type="email"
               className={`form-control ${fieldErrors.email ? 'input-error' : ''}`}
-              placeholder="ejemplo@aguapura.com"
+              placeholder="ejemplo@correo.com"
               value={values.email}
               onChange={handleChange}
               disabled={loading || isRateLimited}
