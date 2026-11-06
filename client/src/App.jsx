@@ -12,6 +12,7 @@ import ZonesPage from './pages/ZonesPage';
 import LocalitiesPage from './pages/LocalitiesPage';
 import ClientsPage from './pages/ClientsPage';
 import HojaRutaPage from './pages/HojaRutaPage';
+import ConfiguracionPage from './pages/ConfiguracionPage';
 
 function App() {
   return (
@@ -33,6 +34,14 @@ function App() {
         <Route path="localities" element={<LocalitiesPage />} />
         <Route path="clients" element={<ClientsPage />} />
         <Route path="hoja-de-ruta" element={<HojaRutaPage />} />
+        <Route
+          path="configuracion"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <ConfiguracionPage />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

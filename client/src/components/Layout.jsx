@@ -95,6 +95,17 @@ const Layout = () => {
             <span className="nav-icon">🚚</span>
             <span>Hoja de Ruta</span>
           </NavLink>
+
+          {user?.rol === 'admin' && (
+            <NavLink
+              to="/configuracion"
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              onClick={mobileMenu.close}
+            >
+              <span className="nav-icon">⚙️</span>
+              <span>Configuración</span>
+            </NavLink>
+          )}
         </nav>
 
         <div className="sidebar-footer">
