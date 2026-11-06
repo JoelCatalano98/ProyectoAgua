@@ -512,6 +512,48 @@ textarea.form-control {
   font-weight: 600;
 }
 
+@media (max-width: 640px) {
+  .tabs-header {
+    width: 100%;
+    gap: 0.25rem;
+    padding: 0 0.25rem !important;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-btn {
+    flex: 1 1 0;
+    min-width: 110px;
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+    min-height: 44px;
+  }
+
+  .configuracion-page .card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .configuracion-page .card-header .btn {
+    width: 100%;
+  }
+
+  .configuracion-page .table-actions {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .configuracion-page .table-actions .btn {
+    flex: 1;
+    min-height: 38px;
+  }
+}
+
 /* Tables Responsive (Transform into cards on mobile) */
 .table-container {
   width: 100%;
@@ -544,6 +586,7 @@ textarea.form-control {
   background-color: #f8fafc;
 }
 
+.table-actions,
 .action-buttons {
   display: flex;
   align-items: center;
