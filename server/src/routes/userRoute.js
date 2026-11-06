@@ -10,8 +10,7 @@ const {
   createUserSchema,
   updateUserSchema,
   resetPasswordSchema,
-  loginUserSchema,
-  registerUserSchema
+  loginUserSchema
 } = require('../middleware/validators/userValidator');
 
 // Rutas de autenticación
@@ -22,8 +21,14 @@ router.post(
   userController.login
 );
 
-// Registro público (se modificará en punto 4)
-router.post('/register', validate(registerUserSchema, 'body'), userController.register);
+// Registro protegido solo para administradores
+router.post(
+  '/register',
+  verifyToken,
+  requireRole('admin'),
+  validate(createUserSchema, 'body'),
+  userController.register
+);
 
 // Endpoints administrativos protegidos (solo admin)
 router.get('/', verifyToken, requireRole('admin'), userController.getAll);
