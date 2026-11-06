@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema(
         message: 'El rol debe ser admin o repartidor'
       },
       default: 'repartidor'
+    },
+    activo: {
+      type: Boolean,
+      default: true
     }
   },
   {
@@ -42,7 +46,7 @@ userSchema.pre('save', async function () {
   this.password = await bcrypt.hash(this.password, 10);
 });
 
-// Metodo de instancia para comparar contraseñas
+// Método de instancia para comparar contraseñas
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
