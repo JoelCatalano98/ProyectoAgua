@@ -213,6 +213,24 @@ cd client && npm install && npm run dev
   - **Email:** `admin@aguapura.com`
   - **Contraseña:** `admin1234`
 
+### Tests Automatizados del Backend (`server/`)
+
+La suite de pruebas automatizadas está desarrollada con **Jest** y **Supertest**, cubriendo todos los endpoints principales, validaciones de esquema (Zod), relaciones populadas, reglas de negocio y seguridad de roles.
+
+#### Ejecución de las pruebas
+Asegurate de tener MongoDB local corriendo en `127.0.0.1:27017` y ejecutá:
+
+```bash
+# Desde la carpeta server/:
+cd server && npm test
+
+# O directamente desde la raíz del proyecto:
+npm test
+```
+
+> [!IMPORTANT]
+> **Aislamiento y Seguridad de Datos:** Los tests utilizan una base de datos exclusiva para pruebas (`distribuidora_agua_test` vía la variable `MONGODB_URI_TEST`). Cuentan con un mecanismo de seguridad estricto que aborta inmediatamente la ejecución si la URI apunta a MongoDB Atlas (`mongodb+srv`) o si el nombre de la base de datos no termina en `_test`. La base de datos de desarrollo nunca es modificada ni eliminada por las pruebas.
+
 ---
 
 ## 5. Listado Completo de Endpoints
