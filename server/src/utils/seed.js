@@ -8,6 +8,7 @@ const Zone = require('../models/zoneModel');
 const Locality = require('../models/localityModel');
 const Client = require('../models/clientModel');
 const User = require('../models/userModel');
+const Settings = require('../models/settingsModel');
 
 const seedData = async () => {
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/distribuidora_agua';
@@ -25,20 +26,29 @@ const seedData = async () => {
       Zone.deleteMany({}),
       Locality.deleteMany({}),
       Client.deleteMany({}),
-      User.deleteMany({})
+      User.deleteMany({}),
+      Settings.deleteMany({})
     ]);
 
-    // 2. Creación del usuario administrador con create() para disparar el hook de bcrypt
+    // 2. Creación del documento de configuración (Settings)
+    console.log('Creando configuración inicial de la empresa...');
+    const settings = await Settings.create({
+      nombreEmpresa: 'Mi Empresa de Agua'
+    });
+    console.log(`Configuración creada: ${settings.nombreEmpresa}`);
+
+    // 3. Creación del usuario administrador con create() para disparar el hook de bcrypt
     console.log('Creando usuario administrador...');
     const adminUser = await User.create({
       nombre: 'Administrador General',
       email: 'admin@aguapura.com',
       password: 'admin1234',
-      rol: 'admin'
+      rol: 'admin',
+      activo: true
     });
     console.log(`Usuario admin creado: ${adminUser.email}`);
 
-    // 3. Creación de Categorías (3)
+    // 4. Creación de Categorías (3)
     console.log('Creando categorías...');
     const categoriasCreadas = await Category.insertMany([
       {
@@ -59,7 +69,7 @@ const seedData = async () => {
     const catDispensers = categoriasCreadas.find((c) => c.nombre === 'Dispensers');
     const catServicios = categoriasCreadas.find((c) => c.nombre === 'Servicios');
 
-    // 4. Creación de Productos (5 con precios realistas en ARS)
+    // 5. Creación de Productos (5 con precios realistas en ARS)
     console.log('Creando productos...');
     await Product.insertMany([
       {
@@ -99,7 +109,7 @@ const seedData = async () => {
       }
     ]);
 
-    // 5. Creación de Zonas (2)
+    // 6. Creación de Zonas (2)
     console.log('Creando zonas de reparto...');
     const zonasCreadas = await Zone.insertMany([
       {
@@ -115,7 +125,7 @@ const seedData = async () => {
     const zonaCentro = zonasCreadas.find((z) => z.nombre === 'Zona Centro y Puerto');
     const zonaNorte = zonasCreadas.find((z) => z.nombre === 'Zona Norte y Boulevard');
 
-    // 6. Creación de Localidades de Santa Fe (4 repartidas en esas zonas)
+    // 7. Creación de Localidades de Santa Fe (4 repartidas en esas zonas)
     console.log('Creando localidades...');
     const localidadesCreadas = await Locality.insertMany([
       {
@@ -145,7 +155,7 @@ const seedData = async () => {
     const locRincon = localidadesCreadas.find((l) => l.nombre === 'Rincón');
     const locRecreo = localidadesCreadas.find((l) => l.nombre === 'Recreo');
 
-    // 7. Creación de Clientes (6)
+    // 8. Creación de Clientes (6)
     console.log('Creando clientes de ejemplo...');
     await Client.insertMany([
       {

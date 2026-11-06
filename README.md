@@ -150,6 +150,15 @@ El sistema administra el catálogo comercial de productos y servicios de una dis
 | `email` | String | Sí | Sí | Correo electrónico con validación de formato |
 | `password` | String | Sí | No | Hash de contraseña con bcrypt (select: false) |
 | `rol` | String | Sí (def. 'repartidor') | No | Enum: `'admin'` o `'repartidor'` |
+| `activo` | Boolean | Sí (def. true) | No | Estado de actividad del usuario (inactivo rechaza login con 401) |
+| `createdAt` | Date | Sí (Auto) | No | Marca temporal de creación |
+| `updatedAt` | Date | Sí (Auto) | No | Marca temporal de última modificación |
+
+#### Colección: `settings`
+| Campo | Tipo | Requerido | Único | Descripción |
+|---|---|---|---|---|
+| `_id` | ObjectId | Sí (Auto) | Sí | Identificador único del documento |
+| `nombreEmpresa` | String | Sí (def. 'Mi Empresa de Agua') | No | Nombre comercial de la empresa (2 a 80 caracteres) |
 | `createdAt` | Date | Sí (Auto) | No | Marca temporal de creación |
 | `updatedAt` | Date | Sí (Auto) | No | Marca temporal de última modificación |
 
@@ -215,6 +224,7 @@ cd client && npm install && npm run dev
 | `201 Created` | Creación exitosa de recurso | POST exitoso en usuarios, productos, zonas, localidades, etc. |
 | `400 Bad Request` | Error en la solicitud | Faltan campos requeridos, validaciones de Zod fallidas (con `detalles`), formato inválido o cuerpo JSON mal formado |
 | `401 Unauthorized` | Fallo de autenticación | Token ausente, token expirado, token alterado o credenciales de login incorrectas |
+| `403 Forbidden` | Permisos insuficientes | Token válido pero rol no autorizado (ej: repartidor accediendo a endpoints exclusivos de admin) |
 | `404 Not Found` | Recurso o ruta no encontrada | Documento inexistente o ruta/endpoint no mapeado |
 | `409 Conflict` | Conflicto con el estado actual del recurso | Recurso duplicado por clave única (nombre de categoría/zona, email) o bloqueo por regla de negocio al intentar eliminar un registro con dependencias (categoría con productos, zona con localidades, localidad con clientes) |
 | `429 Too Many Requests` | Límite de peticiones excedido | Exceso de intentos fallidos de autenticación en login (rate limiting por IP) |
@@ -222,37 +232,43 @@ cd client && npm install && npm run dev
 
 ### Endpoints de la API
 
-| Método | Ruta | Descripción | Requiere Auth (JWT) |
-|---|---|---|---|
-| `POST` | `/api/users/register` | Registro de nuevos usuarios operadores | No |
-| `POST` | `/api/users/login` | Autenticación de usuario. Devuelve JWT y perfil | No |
-| `GET` | `/api/categories` | Listado ordenado de todas las categorías | No |
-| `GET` | `/api/categories/:id` | Detalle de una categoría por su ID | No |
-| `POST` | `/api/categories` | Alta de nueva categoría | Sí |
-| `PUT` | `/api/categories/:id` | Modificación de datos de categoría | Sí |
-| `DELETE` | `/api/categories/:id` | Eliminación de categoría (falla con 409 si tiene productos asociados) | Sí |
-| `GET` | `/api/products` | Listado de productos (admite filtro `?categoria=`) | No |
-| `GET` | `/api/products/:id` | Detalle de un producto con categoría poblada | No |
-| `POST` | `/api/products` | Alta de producto (valida existencia de categoría) | Sí |
-| `PUT` | `/api/products/:id` | Actualización completa o de campos de producto | Sí |
-| `PATCH` | `/api/products/:id` | Actualización parcial de producto | Sí |
-| `DELETE` | `/api/products/:id` | Eliminación de producto | Sí |
-| `GET` | `/api/zones` | Listado de zonas con días de reparto | No |
-| `GET` | `/api/zones/:id` | Detalle de una zona logística | No |
-| `GET` | `/api/zones/:id/hoja-de-ruta` | Clientes activos de la zona ordenados por localidad y calle | No |
-| `POST` | `/api/zones` | Alta de nueva zona logística | Sí |
-| `PUT` | `/api/zones/:id` | Actualización de zona y días de atención | Sí |
-| `DELETE` | `/api/zones/:id` | Eliminación de zona (falla con 409 si tiene localidades asociadas) | Sí |
-| `GET` | `/api/localities` | Listado de localidades con zona poblada (filtro `?zona=`) | No |
-| `GET` | `/api/localities/:id` | Detalle de localidad con zona poblada | No |
-| `POST` | `/api/localities` | Alta de localidad (valida existencia de la zona) | Sí |
-| `PUT` | `/api/localities/:id` | Modificación parcial de localidad | Sí |
-| `DELETE` | `/api/localities/:id` | Eliminación de localidad (falla con 409 si tiene clientes asociados) | Sí |
-| `GET` | `/api/clients` | Listado con localidad y zona pobladas (`?zona=`, `?localidad=`, `?activo=`) | No |
-| `GET` | `/api/clients/:id` | Detalle de cliente con localidad y zona anidadas | No |
-| `POST` | `/api/clients` | Alta de cliente (valida existencia de localidad) | Sí |
-| `PUT` | `/api/clients/:id` | Modificación parcial de cliente | Sí |
-| `DELETE` | `/api/clients/:id` | Eliminación de cliente | Sí |
+| Método | Ruta | Descripción | Requiere Auth (JWT) | Rol Permitido |
+|---|---|---|---|---|
+| `POST` | `/api/users/login` | Autenticación de usuario. Devuelve JWT y perfil | No | Público |
+| `GET` | `/api/settings/public` | Obtener nombre público de la empresa | No | Público |
+| `PUT` | `/api/settings` | Modificar nombre comercial de la empresa | Sí | `admin` |
+| `GET` | `/api/users` | Listado completo de usuarios registrados (sin contraseña) | Sí | `admin` |
+| `POST` | `/api/users` | Alta de nuevo usuario (nombre, email, password, rol, activo) | Sí | `admin` |
+| `POST` | `/api/users/register` | Registro administrativo de usuarios | Sí | `admin` |
+| `PUT` | `/api/users/:id` | Edición de usuario (nombre, rol, activo con reglas de negocio) | Sí | `admin` |
+| `PATCH` | `/api/users/:id/password` | Restablecimiento de contraseña de un usuario | Sí | `admin`
+| `GET` | `/api/categories` | Listado ordenado de todas las categorías | No | Público |
+| `GET` | `/api/categories/:id` | Detalle de una categoría por su ID | No | Público |
+| `POST` | `/api/categories` | Alta de nueva categoría | Sí | Autenticado |
+| `PUT` | `/api/categories/:id` | Modificación de datos de categoría | Sí | Autenticado |
+| `DELETE` | `/api/categories/:id` | Eliminación de categoría (falla con 409 si tiene productos asociados) | Sí | Autenticado |
+| `GET` | `/api/products` | Listado de productos (admite filtro `?categoria=`) | No | Público |
+| `GET` | `/api/products/:id` | Detalle de un producto con categoría poblada | No | Público |
+| `POST` | `/api/products` | Alta de producto (valida existencia de categoría) | Sí | Autenticado |
+| `PUT` | `/api/products/:id` | Actualización completa o de campos de producto | Sí | Autenticado |
+| `PATCH` | `/api/products/:id` | Actualización parcial de producto | Sí | Autenticado |
+| `DELETE` | `/api/products/:id` | Eliminación de producto | Sí | Autenticado |
+| `GET` | `/api/zones` | Listado de zonas con días de reparto | No | Público |
+| `GET` | `/api/zones/:id` | Detalle de una zona logística | No | Público |
+| `GET` | `/api/zones/:id/hoja-de-ruta` | Clientes activos de la zona ordenados por localidad y calle | No | Público |
+| `POST` | `/api/zones` | Alta de nueva zona logística | Sí | Autenticado |
+| `PUT` | `/api/zones/:id` | Actualización de zona y días de atención | Sí | Autenticado |
+| `DELETE` | `/api/zones/:id` | Eliminación de zona (falla con 409 si tiene localidades asociadas) | Sí | Autenticado |
+| `GET` | `/api/localities` | Listado de localidades con zona poblada (filtro `?zona=`) | No | Público |
+| `GET` | `/api/localities/:id` | Detalle de localidad con zona poblada | No | Público |
+| `POST` | `/api/localities` | Alta de localidad (valida existencia de la zona) | Sí | Autenticado |
+| `PUT` | `/api/localities/:id` | Modificación parcial de localidad | Sí | Autenticado |
+| `DELETE` | `/api/localities/:id` | Eliminación de localidad (falla con 409 si tiene clientes asociados) | Sí | Autenticado |
+| `GET` | `/api/clients` | Listado con localidad y zona pobladas (`?zona=`, `?localidad=`, `?activo=`) | No | Público |
+| `GET` | `/api/clients/:id` | Detalle de cliente con localidad y zona anidadas | No | Público |
+| `POST` | `/api/clients` | Alta de cliente (valida existencia de localidad) | Sí | Autenticado |
+| `PUT` | `/api/clients/:id` | Modificación parcial de cliente | Sí | Autenticado |
+| `DELETE` | `/api/clients/:id` | Eliminación de cliente | Sí | Autenticado |
 
 ---
 
@@ -310,6 +326,158 @@ cd client && npm install && npm run dev
       "rol": "repartidor",
       "createdAt": "2026-10-27T23:00:00.000Z",
       "updatedAt": "2026-10-27T23:00:00.000Z"
+    }
+  }
+  ```
+
+
+### Configuración de Empresa
+
+#### GET `/api/settings/public`
+- **Descripción:** Devuelve la configuración pública (nombre de la empresa) sin requerir autenticación.
+- **Response `200 OK`:**
+  ```json
+  {
+    "nombreEmpresa": "Mi Empresa de Agua"
+  }
+  ```
+
+#### PUT `/api/settings`
+- **Descripción:** Actualiza el nombre de la empresa. Requiere autenticación y rol `admin`.
+- **Headers:** `Authorization: Bearer <TOKEN_ADMIN>`
+- **Request:**
+  ```json
+  {
+    "nombreEmpresa": "Aguas del Litoral S.A."
+  }
+  ```
+- **Response `200 OK`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf100",
+    "nombreEmpresa": "Aguas del Litoral S.A.",
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:15:00.000Z"
+  }
+  ```
+- **Response `403 Forbidden` (repartidor intentando modificar):**
+  ```json
+  {
+    "ok": false,
+    "message": "Acceso denegado: permisos insuficientes"
+  }
+  ```
+
+### Gestión Administrativa de Usuarios (Solo `admin`)
+
+#### GET `/api/users`
+- **Headers:** `Authorization: Bearer <TOKEN_ADMIN>`
+- **Response `200 OK`:**
+  ```json
+  [
+    {
+      "_id": "67be89b52044b7d1420cf123",
+      "nombre": "Administrador General",
+      "email": "admin@aguapura.com",
+      "rol": "admin",
+      "activo": true,
+      "createdAt": "2026-10-27T23:00:00.000Z",
+      "updatedAt": "2026-10-27T23:00:00.000Z"
+    },
+    {
+      "_id": "67be89b52044b7d1420cf124",
+      "nombre": "Carlos Repartidor",
+      "email": "carlos@aguapura.com",
+      "rol": "repartidor",
+      "activo": true,
+      "createdAt": "2026-10-27T23:05:00.000Z",
+      "updatedAt": "2026-10-27T23:05:00.000Z"
+    }
+  ]
+  ```
+
+#### POST `/api/users`
+- **Headers:** `Authorization: Bearer <TOKEN_ADMIN>`
+- **Request:**
+  ```json
+  {
+    "nombre": "Martín Logística",
+    "email": "martin@aguapura.com",
+    "password": "claveSegura123",
+    "rol": "repartidor",
+    "activo": true
+  }
+  ```
+- **Response `201 Created`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf125",
+    "nombre": "Martín Logística",
+    "email": "martin@aguapura.com",
+    "rol": "repartidor",
+    "activo": true,
+    "createdAt": "2026-10-27T23:10:00.000Z",
+    "updatedAt": "2026-10-27T23:10:00.000Z"
+  }
+  ```
+
+#### PUT `/api/users/:id`
+- **Headers:** `Authorization: Bearer <TOKEN_ADMIN>`
+- **Request:**
+  ```json
+  {
+    "nombre": "Martín Logística Actualizado",
+    "rol": "repartidor",
+    "activo": false
+  }
+  ```
+- **Response `200 OK`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf125",
+    "nombre": "Martín Logística Actualizado",
+    "email": "martin@aguapura.com",
+    "rol": "repartidor",
+    "activo": false,
+    "createdAt": "2026-10-27T23:10:00.000Z",
+    "updatedAt": "2026-10-27T23:20:00.000Z"
+  }
+  ```
+- **Response `400 Bad Request` (Regla de negocio: auto-desactivación de cuenta propia):**
+  ```json
+  {
+    "ok": false,
+    "message": "No puedes desactivar tu propia cuenta de usuario"
+  }
+  ```
+- **Response `400 Bad Request` (Regla de negocio: dejar al sistema sin administradores activos):**
+  ```json
+  {
+    "ok": false,
+    "message": "No se puede desactivar ni quitar el rol al único administrador activo del sistema"
+  }
+  ```
+
+#### PATCH `/api/users/:id/password`
+- **Headers:** `Authorization: Bearer <TOKEN_ADMIN>`
+- **Request:**
+  ```json
+  {
+    "password": "nuevaContrasena2026"
+  }
+  ```
+- **Response `200 OK`:**
+  ```json
+  {
+    "ok": true,
+    "message": "Contraseña restablecida exitosamente",
+    "user": {
+      "_id": "67be89b52044b7d1420cf125",
+      "nombre": "Martín Logística Actualizado",
+      "email": "martin@aguapura.com",
+      "rol": "repartidor",
+      "activo": false,
+      "updatedAt": "2026-10-27T23:25:00.000Z"
     }
   }
   ```
