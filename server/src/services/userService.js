@@ -163,11 +163,46 @@ const resetPassword = async (id, { password }) => {
   };
 };
 
+const deleteUser = async (id, currentUserId) => {
+  const user = await User.findById(id);
+  if (!user) {
+    throw new AppError('Usuario no encontrado', 404);
+  }
+
+  const isSelf = currentUserId && user._id.toString() === currentUserId.toString();
+  if (isSelf) {
+    throw new AppError('No puedes eliminar tu propia cuenta de usuario', 400);
+  }
+
+  if (user.rol === 'admin' && user.activo === true) {
+    const otherActiveAdminsCount = await User.countDocuments({
+      _id: { $ne: user._id },
+      rol: 'admin',
+      activo: true
+    });
+
+    if (otherActiveAdminsCount === 0) {
+      throw new AppError(
+        'No se puede eliminar al único administrador activo del sistema',
+        400
+      );
+    }
+  }
+
+  await user.deleteOne();
+
+  return {
+    ok: true,
+    message: 'Usuario eliminado exitosamente'
+  };
+};
+
 module.exports = {
   getAllUsers,
   createUser,
   registerUser,
   loginUser,
   updateUser,
-  resetPassword
+  resetPassword,
+  deleteUser
 };

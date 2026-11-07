@@ -223,4 +223,100 @@ describe('Endpoints de Usuarios y Configuración (/api/users y /api/settings)', 
       expect(publicRes.body.nombreEmpresa).toBe('Aguas del Litoral S.A.');
     });
   });
+
+  describe('DELETE /api/users/:id - Eliminación de usuarios', () => {
+    it('debe eliminar un usuario exitosamente como admin (200)', async () => {
+      const userToDelete = await createUser({
+        email: 'a_borrar@aguapura.com',
+        rol: 'repartidor'
+      });
+
+      const res = await request(app)
+        .delete(`/api/users/${userToDelete._id}`)
+        .set(adminHeaders);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          ok: true,
+          message: expect.stringMatching(/eliminado exitosamente/i)
+        })
+      );
+    });
+
+    it('debe devolver 400 cuando un administrador intenta auto-eliminarse', async () => {
+      // Intentar borrar la cuenta del admin logueado
+      const loginRes = await request(app)
+        .post('/api/users/login')
+        .send({ email: 'admin_self_del@test.com', password: 'password123' });
+
+      // Creamos un admin específico
+      const adminSelf = await createAdminAndGetToken({ email: 'admin_self_del@test.com' });
+
+      const res = await request(app)
+        .delete(`/api/users/${adminSelf.user._id}`)
+        .set(adminSelf.headers);
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          ok: false,
+          message: expect.stringMatching(/no puedes eliminar tu propia cuenta/i)
+        })
+      );
+    });
+
+    it('debe devolver 400 al intentar eliminar al único administrador activo del sistema', async () => {
+      const User = require('../src/models/userModel');
+      const adminToEliminate = await createAdminAndGetToken({ email: 'admin_to_del@test.com' });
+
+      // Desactivamos a todos los demás admins para que adminToEliminate sea el único admin activo
+      await User.updateMany({ _id: { $ne: adminToEliminate.user._id } }, { activo: false });
+
+      // Se intenta eliminar al único admin activo usando las cabeceras de adminHeaders
+      const res = await request(app)
+        .delete(`/api/users/${adminToEliminate.user._id}`)
+        .set(adminHeaders);
+
+      // Debe dar 400 por regla de negocio
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          ok: false,
+          message: expect.stringMatching(/no se puede eliminar al único administrador activo/i)
+        })
+      );
+    });
+
+    it('debe devolver 403 cuando un repartidor intenta eliminar un usuario', async () => {
+      const user = await createUser();
+
+      const res = await request(app)
+        .delete(`/api/users/${user._id}`)
+        .set(repartidorHeaders);
+
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          ok: false,
+          message: expect.stringMatching(/permisos insuficientes|acceso denegado/i)
+        })
+      );
+    });
+
+    it('debe devolver 401 al intentar eliminar un usuario sin token', async () => {
+      const user = await createUser();
+
+      const res = await request(app)
+        .delete(`/api/users/${user._id}`);
+
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          ok: false,
+          message: expect.stringMatching(/token no proporcionado/i)
+        })
+      );
+    });
+  });
 });

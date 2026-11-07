@@ -59,4 +59,12 @@ router.patch(
   userController.resetPassword
 );
 
+router.delete(
+  '/:id',
+  verifyToken,
+  requireRole('admin'),
+  validate(idParamSchema, 'params'),
+  userController.remove
+);
+
 module.exports = router;

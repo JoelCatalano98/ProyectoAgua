@@ -259,7 +259,8 @@ npm test
 | `POST` | `/api/users` | Alta de nuevo usuario (nombre, email, password, rol, activo) | Sí | `admin` |
 | `POST` | `/api/users/register` | Registro administrativo de usuarios | Sí | `admin` |
 | `PUT` | `/api/users/:id` | Edición de usuario (nombre, rol, activo con reglas de negocio) | Sí | `admin` |
-| `PATCH` | `/api/users/:id/password` | Restablecimiento de contraseña de un usuario | Sí | `admin`
+| `PATCH` | `/api/users/:id/password` | Restablecimiento de contraseña de un usuario | Sí | `admin` |
+| `DELETE` | `/api/users/:id` | Eliminación de un usuario (con reglas de negocio) | Sí | `admin`
 | `GET` | `/api/categories` | Listado ordenado de todas las categorías | No | Público |
 | `GET` | `/api/categories/:id` | Detalle de una categoría por su ID | No | Público |
 | `POST` | `/api/categories` | Alta de nueva categoría | Sí | Autenticado |
