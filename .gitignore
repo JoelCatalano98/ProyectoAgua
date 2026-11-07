@@ -15,3 +15,8 @@ client/dist/
 *.env
 server/backups/
 backups/
+
+# Postman y referencias locales
+.postman/
+postman/
+READMEejemplo.md
