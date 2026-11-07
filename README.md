@@ -1,10 +1,60 @@
 # Sistema de Gestión de Reparto de Agua (Bidones y Dispensers) — TP Final Backend UTN BA
 
-API RESTful desarrollada con Node.js, Express y MongoDB (Mongoose) aplicando arquitectura por capas con separación estricta de controladores y capa de servicios, complementada con un panel de administración web responsive desarrollado en React + Vite (`client/`).
+Sistema integral de gestión comercial y logística para distribuidoras de agua purificada envasada y dispensers, orientado a la administración de catálogos, delimitación de recorridos por localidades/zonas, cuentas corrientes de clientes y control de operadores.
 
-El sistema administra el catálogo comercial de productos y servicios de una distribuidora de agua purificada, su delimitación logística por zonas y localidades, su cartera de clientes con cuenta corriente y la autenticación de operadores mediante JWT.
-
+**Stack tecnológico:** Node.js, Express, MongoDB (Mongoose) y React + Vite.  
 **Autor:** Joel Catalano
+
+---
+
+## Cómo correr el proyecto
+
+Cada parte (`server/` para el backend y `client/` para el frontend) es un proyecto independiente y se ejecuta por separado.
+
+### Requisitos previos
+- Node.js instalado (versión 18 o superior).
+- Instancia de MongoDB accesible (servicio local en `127.0.0.1:27017`, Docker o MongoDB Atlas).
+
+### Backend (`server/`)
+En una primera terminal:
+```bash
+cd server && npm install && npm run seed && npm start
+```
+- `npm run seed` puebla la base de datos con categorías, zonas, localidades, clientes, productos y el usuario administrador inicial.
+- Para desarrollo con recarga automática, podés ejecutar `npm run dev`.
+- El servidor queda disponible en `http://localhost:3000`.
+
+> [!TIP]
+> **Variables de entorno para desarrollo local (`server/.env.local`):**
+> El archivo `server/.env` se mantiene versionado con valores de ejemplo/placeholders según lo requerido por la consigna del TP. Para desarrollo local, la aplicación carga automáticamente `server/.env.local` en primer lugar (ignorado por Git en `.gitignore`). Podés crear `server/.env.local` con tus variables locales reales (ej. un `JWT_SECRET` propio o URI personalizada); `dotenv` dará prioridad a las variables de `.env.local` sin sobreescribirlas con `.env`. La suite de tests automatizados (`npm test`) funciona de forma totalmente independiente con su propia configuración aislada (`_test`).
+
+### Frontend (`client/`)
+En una segunda terminal:
+```bash
+cd client && npm install && npm run dev
+```
+- Inicia el servidor de desarrollo Vite disponible habitualmente en `http://localhost:5173`.
+- Para ingresar al sistema, usá las credenciales creadas por el seed:
+  - **Email:** `admin@aguapura.com`
+  - **Contraseña:** `admin1234`
+
+### Tests automatizados del backend (`server/`)
+
+La suite de pruebas automatizadas está desarrollada con **Jest** y **Supertest**, cubriendo todos los endpoints principales, validaciones de esquema (Zod), relaciones populadas, reglas de negocio y seguridad de roles.
+
+#### Ejecución de las pruebas
+Asegurate de tener MongoDB local corriendo en `127.0.0.1:27017` y ejecutá:
+
+```bash
+# Desde la carpeta server/:
+cd server && npm test
+
+# O directamente desde la raíz del proyecto:
+npm test
+```
+
+> [!IMPORTANT]
+> **Aislamiento y Seguridad de Datos:** Los tests utilizan una base de datos exclusiva para pruebas (`distribuidora_agua_test` vía la variable `MONGODB_URI_TEST`). Cuentan con un mecanismo de seguridad estricto que aborta inmediatamente la ejecución si la URI apunta a MongoDB Atlas (`mongodb+srv`) o si el nombre de la base de datos no termina en `_test`. La base de datos de desarrollo nunca es modificada ni eliminada por las pruebas.
 
 ---
 
@@ -184,57 +234,6 @@ El sistema administra el catálogo comercial de productos y servicios de una dis
   - **Vite 6** (Herramienta de desarrollo y empaquetador ultrarrápido)
   - **React Router 7** (Enrutamiento del lado del cliente con navegación declarativa)
   - **CSS3 Moderno Puro** (Mobile-first, Flexbox, CSS Grid, variables CSS, vistas adaptables sin librerías pesadas)
-
----
-
-## Cómo Correr el Proyecto
-
-Cada parte (`server/` para el backend y `client/` para el frontend) es un proyecto independiente y se ejecuta por separado.
-
-### Requisitos previos
-- Node.js instalado (versión 18 o superior).
-- Instancia de MongoDB accesible (servicio local en `127.0.0.1:27017`, Docker o MongoDB Atlas).
-
-### Backend (`server/`)
-En una primera terminal:
-```bash
-cd server && npm install && npm run seed && npm start
-```
-- `npm run seed` puebla la base de datos con categorías, zonas, localidades, clientes, productos y el usuario administrador inicial.
-- Para desarrollo con recarga automática, podés ejecutar `npm run dev`.
-- El servidor queda disponible en `http://localhost:3000`.
-
-> [!TIP]
-> **Variables de entorno para desarrollo local (`server/.env.local`):**
-> El archivo `server/.env` se mantiene versionado con valores de ejemplo/placeholders según lo requerido por la consigna del TP. Para desarrollo local, la aplicación carga automáticamente `server/.env.local` en primer lugar (ignorado por Git en `.gitignore`). Podés crear `server/.env.local` con tus variables locales reales (ej. un `JWT_SECRET` propio o URI personalizada); `dotenv` dará prioridad a las variables de `.env.local` sin sobreescribirlas con `.env`. La suite de tests automatizados (`npm test`) funciona de forma totalmente independiente con su propia configuración aislada (`_test`).
-
-### Frontend (`client/`)
-En una segunda terminal:
-```bash
-cd client && npm install && npm run dev
-```
-- Inicia el servidor de desarrollo Vite disponible habitualmente en `http://localhost:5173`.
-- Para ingresar al sistema, usá las credenciales creadas por el seed:
-  - **Email:** `admin@aguapura.com`
-  - **Contraseña:** `admin1234`
-
-### Tests Automatizados del Backend (`server/`)
-
-La suite de pruebas automatizadas está desarrollada con **Jest** y **Supertest**, cubriendo todos los endpoints principales, validaciones de esquema (Zod), relaciones populadas, reglas de negocio y seguridad de roles.
-
-#### Ejecución de las pruebas
-Asegurate de tener MongoDB local corriendo en `127.0.0.1:27017` y ejecutá:
-
-```bash
-# Desde la carpeta server/:
-cd server && npm test
-
-# O directamente desde la raíz del proyecto:
-npm test
-```
-
-> [!IMPORTANT]
-> **Aislamiento y Seguridad de Datos:** Los tests utilizan una base de datos exclusiva para pruebas (`distribuidora_agua_test` vía la variable `MONGODB_URI_TEST`). Cuentan con un mecanismo de seguridad estricto que aborta inmediatamente la ejecución si la URI apunta a MongoDB Atlas (`mongodb+srv`) o si el nombre de la base de datos no termina en `_test`. La base de datos de desarrollo nunca es modificada ni eliminada por las pruebas.
 
 ---
 
