@@ -253,6 +253,7 @@ npm test
 
 | Método | Ruta | Descripción | Requiere Auth (JWT) | Rol Permitido |
 |---|---|---|---|---|
+| `GET` | `/` y `/api` | Ruta base informativa y estado de salud de la API | No | Público |
 | `POST` | `/api/users/login` | Autenticación de usuario. Devuelve JWT y perfil | No | Público |
 | `GET` | `/api/settings/public` | Obtener nombre público de la empresa | No | Público |
 | `PUT` | `/api/settings` | Modificar nombre comercial de la empresa | Sí | `admin` |
@@ -325,6 +326,10 @@ npm test
   ```
 
 #### POST `/api/users/register`
+- **Descripción:** Registro administrativo de nuevos operadores en el sistema. Requiere autenticación con rol `admin`.
+- **Headers:** `Authorization: Bearer <TOKEN_ADMIN>`
+- **Cómo obtener `<TOKEN_ADMIN>`:** Realizar previamente `POST /api/users/login` con las credenciales del administrador inicial generado por el seed (`admin@aguapura.com` / `admin1234`).
+  > **Nota de seguridad:** Las credenciales `admin@aguapura.com` / `admin1234` son exclusivas del entorno de desarrollo y pruebas provistas por el comando seed (`npm run seed`), debiendo modificarse de forma obligatoria en cualquier despliegue productivo real.
 - **Request:**
   ```json
   {
@@ -337,7 +342,7 @@ npm test
 - **Response `201 Created`:**
   ```json
   {
-    "status": "success",
+    "ok": true,
     "message": "Usuario registrado exitosamente",
     "user": {
       "_id": "67be89b52044b7d1420cf124",
@@ -347,6 +352,20 @@ npm test
       "createdAt": "2026-10-27T23:00:00.000Z",
       "updatedAt": "2026-10-27T23:00:00.000Z"
     }
+  }
+  ```
+- **Response `401 Unauthorized` (Token ausente):**
+  ```json
+  {
+    "ok": false,
+    "message": "Token no proporcionado"
+  }
+  ```
+- **Response `403 Forbidden` (Usuario con rol repartidor intentando registrar):**
+  ```json
+  {
+    "ok": false,
+    "message": "Acceso denegado: permisos insuficientes"
   }
   ```
 
@@ -518,6 +537,44 @@ npm test
   ]
   ```
 
+#### POST `/api/categories` (Requiere Header: `Authorization: Bearer <token>`)
+- **Request:**
+  ```json
+  {
+    "nombre": "Accesorios y Repuestos",
+    "descripcion": "Canillas, porta bidones, vasos térmicos y repuestos de dispensers"
+  }
+  ```
+- **Response `201 Created`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf112",
+    "nombre": "Accesorios y Repuestos",
+    "descripcion": "Canillas, porta bidones, vasos térmicos y repuestos de dispensers",
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:00:00.000Z"
+  }
+  ```
+
+#### PUT `/api/categories/:id` (Requiere Header: `Authorization: Bearer <token>`)
+- **Request:**
+  ```json
+  {
+    "nombre": "Accesorios y Filtros",
+    "descripcion": "Canillas, porta bidones, vasos térmicos, filtros y repuestos"
+  }
+  ```
+- **Response `200 OK`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf112",
+    "nombre": "Accesorios y Filtros",
+    "descripcion": "Canillas, porta bidones, vasos térmicos, filtros y repuestos",
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:10:00.000Z"
+  }
+  ```
+
 #### DELETE `/api/categories/:id`
 - **Response `409 Conflict` (Violación de regla de negocio: tiene productos asociados):**
   ```json
@@ -565,6 +622,35 @@ npm test
   }
   ```
 
+#### PUT `/api/products/:id` (Requiere Header: `Authorization: Bearer <token>`)
+- **Request (Actualización completa o de campos):**
+  ```json
+  {
+    "nombre": "Bidón 20 Litros Retornable Premium",
+    "descripcion": "Agua purificada microfiltrada baja en sodio",
+    "precio": 4500,
+    "stock": 400,
+    "categoria": "67be89b52044b7d1420cf111"
+  }
+  ```
+- **Response `200 OK`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf222",
+    "nombre": "Bidón 20 Litros Retornable Premium",
+    "descripcion": "Agua purificada microfiltrada baja en sodio",
+    "precio": 4500,
+    "stock": 400,
+    "categoria": {
+      "_id": "67be89b52044b7d1420cf111",
+      "nombre": "Bidones",
+      "descripcion": "Envases retornables y descartables"
+    },
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:15:00.000Z"
+  }
+  ```
+
 #### PATCH `/api/products/:id` (Requiere Header: `Authorization: Bearer <token>`)
 - **Request (Modificación parcial de stock):**
   ```json
@@ -587,6 +673,97 @@ npm test
     },
     "createdAt": "2026-10-27T23:00:00.000Z",
     "updatedAt": "2026-10-27T23:05:00.000Z"
+  }
+  ```
+
+### Localidades
+
+#### POST `/api/localities` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
+- **Request:**
+  ```json
+  {
+    "nombre": "Santo Tomé",
+    "provincia": "Santa Fe"
+  }
+  ```
+- **Response `201 Created`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf445",
+    "nombre": "Santo Tomé",
+    "provincia": "Santa Fe",
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:00:00.000Z"
+  }
+  ```
+
+#### PUT `/api/localities/:id` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
+- **Request:**
+  ```json
+  {
+    "nombre": "Santo Tomé Ciudad",
+    "provincia": "Santa Fe"
+  }
+  ```
+- **Response `200 OK`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf445",
+    "nombre": "Santo Tomé Ciudad",
+    "provincia": "Santa Fe",
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:10:00.000Z"
+  }
+  ```
+
+### Zonas de Reparto
+
+#### POST `/api/zones` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
+- **Request (Valida existencia de la localidad y días de reparto permitidos):**
+  ```json
+  {
+    "nombre": "Zona Costanera y 7 Jefes",
+    "localidad": "67be89b52044b7d1420cf444",
+    "diasDeReparto": ["Martes", "Jueves"]
+  }
+  ```
+- **Response `201 Created` (Devuelve la zona con localidad poblada):**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf334",
+    "nombre": "Zona Costanera y 7 Jefes",
+    "diasDeReparto": ["Martes", "Jueves"],
+    "localidad": {
+      "_id": "67be89b52044b7d1420cf444",
+      "nombre": "Santa Fe Capital",
+      "provincia": "Santa Fe"
+    },
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:00:00.000Z"
+  }
+  ```
+
+#### PUT `/api/zones/:id` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
+- **Request:**
+  ```json
+  {
+    "nombre": "Zona Costanera Norte",
+    "diasDeReparto": ["Martes", "Jueves", "Sábado"]
+  }
+  ```
+- **Response `200 OK`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf334",
+    "nombre": "Zona Costanera Norte",
+    "diasDeReparto": ["Martes", "Jueves", "Sábado"],
+    "localidad": {
+      "_id": "67be89b52044b7d1420cf444",
+      "nombre": "Santa Fe Capital",
+      "provincia": "Santa Fe"
+    },
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:15:00.000Z"
   }
   ```
 
@@ -619,6 +796,85 @@ npm test
       "updatedAt": "2026-10-27T23:00:00.000Z"
     }
   ]
+  ```
+
+#### POST `/api/clients` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
+- **Request:**
+  ```json
+  {
+    "nombre": "Estudio Jurídico Alvear",
+    "telefono": "342-4589211",
+    "direccion": "Alvear 3120",
+    "zona": "67be89b52044b7d1420cf333",
+    "envasesEnPoder": 2,
+    "saldo": 0,
+    "activo": true,
+    "observaciones": "Timbre 2B - Horario de 9 a 17 hs"
+  }
+  ```
+- **Response `201 Created` (Devuelve cliente con zona y localidad anidada pobladas):**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf556",
+    "nombre": "Estudio Jurídico Alvear",
+    "telefono": "342-4589211",
+    "direccion": "Alvear 3120",
+    "envasesEnPoder": 2,
+    "saldo": 0,
+    "activo": true,
+    "observaciones": "Timbre 2B - Horario de 9 a 17 hs",
+    "zona": {
+      "_id": "67be89b52044b7d1420cf333",
+      "nombre": "Zona Centro y Puerto",
+      "diasDeReparto": ["Lunes", "Miércoles", "Viernes"],
+      "localidad": {
+        "_id": "67be89b52044b7d1420cf444",
+        "nombre": "Santa Fe Capital",
+        "provincia": "Santa Fe"
+      }
+    },
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:00:00.000Z"
+  }
+  ```
+
+#### PUT `/api/clients/:id` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
+- **Request (Modificación de datos o saldo de cuenta corriente):**
+  ```json
+  {
+    "nombre": "Estudio Jurídico Alvear & Asociados",
+    "telefono": "342-4589299",
+    "direccion": "Alvear 3120 Piso 1",
+    "envasesEnPoder": 3,
+    "saldo": 8400,
+    "activo": true,
+    "observaciones": "Dejar bidones en portería"
+  }
+  ```
+- **Response `200 OK`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf556",
+    "nombre": "Estudio Jurídico Alvear & Asociados",
+    "telefono": "342-4589299",
+    "direccion": "Alvear 3120 Piso 1",
+    "envasesEnPoder": 3,
+    "saldo": 8400,
+    "activo": true,
+    "observaciones": "Dejar bidones en portería",
+    "zona": {
+      "_id": "67be89b52044b7d1420cf333",
+      "nombre": "Zona Centro y Puerto",
+      "diasDeReparto": ["Lunes", "Miércoles", "Viernes"],
+      "localidad": {
+        "_id": "67be89b52044b7d1420cf444",
+        "nombre": "Santa Fe Capital",
+        "provincia": "Santa Fe"
+      }
+    },
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:20:00.000Z"
+  }
   ```
 
 ### Hoja de Ruta Imprimible por Localidad
@@ -788,13 +1044,13 @@ Todas las respuestas de error de la API utilizan una estructura unificada y pred
 El repositorio está organizado en dos partes claramente separadas e independientes: `server/` (backend) y `client/` (frontend).
 
 > [!NOTE]
-> **Estructura pedida por la consigna:** La carpeta `server/` contiene la estructura modular de directorios (`app.js`, `.env`, `.env.example`, `package.json`, `src/config/`, `src/controllers/`, `src/middleware/`, `src/models/`, `src/routes/`, `src/services/`, `src/utils/`) requerida por la consigna del TP. La carpeta `client/` contiene el desarrollo del frontend opcional como Single Page Application (SPA). No se utiliza un `package.json` en la raíz: cada parte gestiona sus dependencias, scripts de ejecución y ciclo de despliegue por separado.
+> **Estructura pedida por la consigna:** La carpeta `server/` contiene la estructura modular de directorios (`app.js`, `.env`, `.env.example`, `package.json`, `src/config/`, `src/controllers/`, `src/middleware/`, `src/models/`, `src/routes/`, `src/services/`, `src/utils/`) requerida por la consigna del TP. La carpeta `client/` contiene el desarrollo del frontend opcional como Single Page Application (SPA). En la raíz se incluye un `package.json` de conveniencia con scripts delegados (`npm test`, `npm run seed`) para facilitar la ejecución y evaluación directa desde la raíz del repositorio.
 
 ```
 distribuidora-agua/
 ├── .gitignore
+├── package.json             (scripts de conveniencia: npm test, npm run seed)
 ├── README.md
-├── READMEejemplo.md
 ├── server/
 │   ├── app.js                   (punto de entrada del servidor Express)
 │   ├── vercel.json              (configuración de reescritura para serverless)
