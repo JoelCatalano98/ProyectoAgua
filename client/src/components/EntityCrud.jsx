@@ -76,6 +76,14 @@ const EntityCrud = ({
   const validateForm = (values) => {
     const errors = {};
     fields.forEach((field) => {
+      const isDisabled =
+        typeof field.disabled === 'function'
+          ? field.disabled(values)
+          : Boolean(field.disabled);
+
+      // Si el campo está deshabilitado, no validar obligatorio
+      if (isDisabled) return;
+
       const val = values[field.name];
 
       // Campos obligatorios
@@ -86,6 +94,15 @@ const EntityCrud = ({
           (typeof val === 'string' && val.trim() === '')
         ) {
           errors[field.name] = `${field.label} es obligatorio`;
+          return;
+        }
+      }
+
+      // Validación personalizada por campo
+      if (field.validate) {
+        const customError = field.validate(val, values);
+        if (customError) {
+          errors[field.name] = customError;
           return;
         }
       }
@@ -137,8 +154,22 @@ const EntityCrud = ({
         });
         setFieldErrors(apiErrors);
         setFormError('Por favor, corregí los errores indicados abajo');
+      } else if (err.message) {
+        const msg = err.message.toLowerCase();
+        if (msg.includes('nombre') && !fieldErrors.nombre) {
+          setFieldErrors({ nombre: err.message });
+          setFormError('Por favor, corregí los errores indicados abajo');
+        } else if (msg.includes('localidad') && !fieldErrors.localidad) {
+          setFieldErrors({ localidad: err.message });
+          setFormError('Por favor, corregí los errores indicados abajo');
+        } else if (msg.includes('zona') && !fieldErrors.zona) {
+          setFieldErrors({ zona: err.message });
+          setFormError('Por favor, corregí los errores indicados abajo');
+        } else {
+          setFormError(err.message || 'Error al procesar la solicitud');
+        }
       } else {
-        setFormError(err.message || 'Error al procesar la solicitud');
+        setFormError('Error al procesar la solicitud');
       }
     }
   };
@@ -202,100 +233,110 @@ const EntityCrud = ({
           </div>
         </div>
 
-        {/* Mensajes de exito o error globales */}
+        {/* Alerta de exito flotante / visible */}
         {successMessage.message && (
-          <div className="alert alert-success">
+          <div className="alert alert-success" style={{ margin: '1rem 1.5rem 0' }}>
             <span>✅</span>
             <div>{successMessage.message}</div>
           </div>
         )}
-        {crudError && !deleteModal.isOpen && (
-          <div
-            className="alert alert-danger"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '0.75rem'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>⚠️</span>
-              <div>{crudError}</div>
-            </div>
-            {(crudErrorStatus === 0 || !items.length) && (
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => loadItems().catch(() => {})}
-              >
-                🔄 Reintentar
-              </button>
-            )}
+
+        {/* Alerta de error de listado */}
+        {crudError && (
+          <div className="alert alert-danger" style={{ margin: '1rem 1.5rem 0' }}>
+            <span>⚠️</span>
+            <div>{crudError}</div>
           </div>
         )}
 
-        {/* Barra de filtros */}
+        {/* Barra de Filtros */}
         {filters.length > 0 && (
-          <div className="filters-bar">
+          <div
+            style={{
+              padding: '1rem 1.5rem',
+              display: 'flex',
+              gap: '1rem',
+              flexWrap: 'wrap',
+              borderBottom: '1px solid var(--border-color)',
+              background: 'var(--bg-main)'
+            }}
+          >
             {filters.map((filter) => (
-              <div key={filter.name} className="form-group">
-                <label className="form-label">{filter.label}</label>
+              <div
+                key={filter.name}
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '180px' }}
+              >
+                <label
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  {filter.label}
+                </label>
                 <select
                   className="form-control"
+                  style={{ padding: '0.4rem 0.6rem', fontSize: '0.875rem' }}
                   value={filterValues[filter.name] || ''}
                   onChange={(e) => handleFilterChange(filter.name, e.target.value)}
                 >
                   <option value="">{filter.placeholder || 'Todos'}</option>
-                  {filter.options.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
+                  {filter.options &&
+                    filter.options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
                 </select>
               </div>
             ))}
-            <div style={{ alignSelf: 'flex-end', paddingBottom: '2px' }}>
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => {
-                  const resetFilters = {};
-                  filters.forEach((f) => {
-                    resetFilters[f.name] = f.defaultValue || '';
-                  });
-                  setFilterValues(resetFilters);
-                }}
-              >
-                Limpiar Filtros
-              </button>
-            </div>
+
+            {Object.values(filterValues).some((v) => v !== '') && (
+              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    const cleared = {};
+                    filters.forEach((f) => {
+                      cleared[f.name] = '';
+                    });
+                    setFilterValues(cleared);
+                  }}
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            )}
           </div>
         )}
 
         {/* Estado de carga */}
-        {loading && (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-            Cargando registros...
+        {loading ? (
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p>Cargando {title.toLowerCase()}...</p>
           </div>
-        )}
-
-        {/* Tabla de datos */}
-        {!loading && items.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-            No se encontraron registros para mostrar.
+        ) : items.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">📭</div>
+            <h3 className="empty-title">No hay {title.toLowerCase()} registrados</h3>
+            <p className="empty-description">
+              Comenzá creando un nuevo registro con el botón superior.
+            </p>
           </div>
-        )}
-
-        {!loading && items.length > 0 && (
-          <div className="table-container">
-            <table className="data-table">
+        ) : (
+          <div className="table-responsive">
+            <table className="table">
               <thead>
                 <tr>
                   {columns.map((col) => (
-                    <th key={col.key}>{col.label}</th>
+                    <th key={col.key} style={col.width ? { width: col.width } : undefined}>
+                      {col.label}
+                    </th>
                   ))}
-                  <th style={{ width: '130px', textAlign: 'right' }}>Acciones</th>
+                  <th style={{ width: '120px', textAlign: 'right' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -362,26 +403,82 @@ const EntityCrud = ({
                 {fields.map((field) => {
                   const hasError = Boolean(fieldErrors[field.name]);
 
+                  if (field.render) {
+                    return (
+                      <div key={field.name} className="form-group">
+                        {field.render({
+                          formData,
+                          handleFieldChange,
+                          fieldErrors,
+                          setFieldErrors,
+                          hasError,
+                          actionLoading
+                        })}
+                      </div>
+                    );
+                  }
+
                   if (field.type === 'select') {
+                    const options =
+                      typeof field.options === 'function'
+                        ? field.options(formData)
+                        : (field.options || []);
+                    const isDisabled =
+                      typeof field.disabled === 'function'
+                        ? field.disabled(formData)
+                        : Boolean(field.disabled);
+                    const warning =
+                      typeof field.warning === 'function'
+                        ? field.warning(formData)
+                        : field.warning;
+                    const actionElement =
+                      typeof field.action === 'function'
+                        ? field.action({ formData, handleFieldChange, setFieldErrors })
+                        : field.action;
+
                     return (
                       <div key={field.name} className="form-group">
                         <label className="form-label" htmlFor={field.name}>
                           {field.label} {field.required && '*'}
                         </label>
-                        <select
-                          id={field.name}
-                          className={`form-control ${hasError ? 'input-error' : ''}`}
-                          value={formData[field.name] || ''}
-                          onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                        >
-                          <option value="">{field.placeholder || 'Seleccione...'}</option>
-                          {field.options &&
-                            field.options.map((opt) => (
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <select
+                            id={field.name}
+                            className={`form-control ${hasError ? 'input-error' : ''}`}
+                            value={formData[field.name] || ''}
+                            disabled={isDisabled}
+                            onChange={(e) => {
+                              if (field.onChange) {
+                                field.onChange(e.target.value, {
+                                  handleFieldChange,
+                                  formData,
+                                  setFieldErrors
+                                });
+                              } else {
+                                handleFieldChange(field.name, e.target.value);
+                              }
+                              if (fieldErrors[field.name]) {
+                                setFieldErrors((prev) => ({ ...prev, [field.name]: '' }));
+                              }
+                            }}
+                            style={{ flex: 1 }}
+                          >
+                            <option value="">{field.placeholder || 'Seleccione...'}</option>
+                            {options.map((opt) => (
                               <option key={opt.value} value={opt.value}>
                                 {opt.label}
                               </option>
                             ))}
-                        </select>
+                          </select>
+                          {actionElement && (
+                            <div style={{ flexShrink: 0 }}>{actionElement}</div>
+                          )}
+                        </div>
+                        {warning && (
+                          <div style={{ marginTop: '0.35rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            {warning}
+                          </div>
+                        )}
                         {hasError && (
                           <span className="field-error">{fieldErrors[field.name]}</span>
                         )}
@@ -401,7 +498,12 @@ const EntityCrud = ({
                           rows="3"
                           placeholder={field.placeholder}
                           value={formData[field.name] || ''}
-                          onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                          onChange={(e) => {
+                            handleFieldChange(field.name, e.target.value);
+                            if (fieldErrors[field.name]) {
+                              setFieldErrors((prev) => ({ ...prev, [field.name]: '' }));
+                            }
+                          }}
                         />
                         {hasError && (
                           <span className="field-error">{fieldErrors[field.name]}</span>
@@ -488,7 +590,12 @@ const EntityCrud = ({
                         className={`form-control ${hasError ? 'input-error' : ''}`}
                         placeholder={field.placeholder}
                         value={formData[field.name] !== undefined ? formData[field.name] : ''}
-                        onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                        onChange={(e) => {
+                          handleFieldChange(field.name, e.target.value);
+                          if (fieldErrors[field.name]) {
+                            setFieldErrors((prev) => ({ ...prev, [field.name]: '' }));
+                          }
+                        }}
                       />
                       {hasError && (
                         <span className="field-error">{fieldErrors[field.name]}</span>
