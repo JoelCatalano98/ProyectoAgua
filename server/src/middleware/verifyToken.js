@@ -23,7 +23,13 @@ const verifyToken = (req, res, next) => {
   }
 
   const token = parts[1];
-  const secret = process.env.JWT_SECRET || 'secret_fallback_key';
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    return res.status(500).json({
+      ok: false,
+      message: 'Error de configuración: JWT_SECRET no definido'
+    });
+  }
 
   try {
     const decoded = jwt.verify(token, secret);

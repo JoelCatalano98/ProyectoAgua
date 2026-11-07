@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../../src/models/userModel');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secret_fallback_key';
+const JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_key_56tests';
 
 const generateToken = (user) => {
   return jwt.sign(

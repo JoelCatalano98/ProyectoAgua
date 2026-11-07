@@ -1,5 +1,12 @@
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+
+// Validación central de variables de entorno obligatorias
+if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {
+  const errorMsg = 'FATAL: La variable de entorno JWT_SECRET es obligatoria y no está configurada.';
+  console.error(errorMsg);
+  throw new Error(errorMsg);
+}
 const express = require('express');
 const cors = require('cors');
 

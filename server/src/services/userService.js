@@ -56,7 +56,10 @@ const loginUser = async ({ email, password }) => {
     throw new AppError('Credenciales inválidas', 401);
   }
 
-  const secret = process.env.JWT_SECRET || 'secret_fallback_key';
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new AppError('Error de configuración: JWT_SECRET no definido', 500);
+  }
   const expiresIn = process.env.JWT_EXPIRES_IN || '2h';
 
   const token = jwt.sign(

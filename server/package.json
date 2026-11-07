@@ -9,7 +9,7 @@
     "seed": "node src/utils/seed.js",
     "backup": "node scripts/backup_dev.js",
     "migrate": "node scripts/migrate_hierarchy.js",
-    "test": "cross-env NODE_ENV=test jest --runInBand --forceExit"
+    "test": "cross-env NODE_ENV=test JWT_SECRET=test_jwt_secret_key_56tests jest --runInBand --forceExit"
   },
   "keywords": [
     "nodejs",
