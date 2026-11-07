@@ -888,8 +888,10 @@ textarea.form-control {
 }
 
 .hoja-tabla-excel th {
-  background-color: #f7f7f7;
+  background-color: #d0e8f9;
   font-weight: bold;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .hoja-tabla-excel tr {
@@ -931,6 +933,8 @@ textarea.form-control {
     line-height: 1.25 !important;
     margin: 0 !important;
     padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .app-container {
@@ -1005,7 +1009,7 @@ textarea.form-control {
   }
 
   .hoja-tabla-excel th {
-    background-color: #f7f7f7 !important;
+    background-color: #d0e8f9 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
