@@ -13,21 +13,50 @@ const Client = require('../models/clientModel');
 const User = require('../models/userModel');
 const Settings = require('../models/settingsModel');
 
+const getMongoTarget = (uri) => {
+  try {
+    const parsed = new URL(uri);
+    const host = parsed.host || 'desconocido';
+    const dbName = parsed.pathname ? parsed.pathname.replace(/^\//, '') : '';
+    const isRemote = parsed.protocol === 'mongodb+srv:' || parsed.hostname.includes('mongodb.net');
+    return { host, dbName, isRemote };
+  } catch {
+    const isRemote = uri.startsWith('mongodb+srv://') || uri.includes('mongodb.net');
+    const withoutCreds = uri.replace(/^mongodb(\+srv)?:\/\/[^@]+@/, '');
+    const hostMatch = withoutCreds.match(/^([^/?]+)/);
+    const dbMatch = uri.match(/\/([^/?]+)(?:\?|$)/);
+    return {
+      host: hostMatch ? hostMatch[1] : 'desconocido',
+      dbName: dbMatch ? dbMatch[1] : '',
+      isRemote
+    };
+  }
+};
+
 const seedData = async () => {
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/distribuidora_agua';
+  const { host, dbName, isRemote } = getMongoTarget(uri);
+
+  console.log('=== INICIO DEL SEED DE BASE DE DATOS ===');
+  console.log(`Destino: Host: ${host} | Base de datos: ${dbName || '(por defecto)'}`);
+  console.log('Operación planificada:');
+  console.log('  - Vaciado total de colecciones existentes: categories, products, localities, zones, clients, users, settings.');
+  console.log('  - Creación de configuración comercial (Settings).');
+  console.log('  - Creación de usuario administrador inicial.');
+  console.log('  - Poblado de catálogo: 3 categorías y 5 productos.');
+  console.log('  - Poblado logístico: 4 localidades y 5 zonas de reparto.');
+  console.log('  - Alta de 6 clientes asociados a zonas.');
 
   // Protección de seguridad
-  if (uri.startsWith('mongodb+srv://') || uri.includes('mongodb.net')) {
+  if (isRemote) {
     throw new Error('ABORTADO POR SEGURIDAD: No se puede ejecutar el seed sobre MongoDB Atlas / producción.');
   }
-  const dbNameMatch = uri.match(/\/([^/?]+)(?:\?|$)/);
-  const dbName = dbNameMatch ? dbNameMatch[1] : '';
   if (dbName.endsWith('_test')) {
     throw new Error(`ABORTADO POR SEGURIDAD: El seed de desarrollo no debe ejecutarse sobre la base de tests ('${dbName}').`);
   }
 
   try {
-    console.log(`Conectando a MongoDB en: ${uri}`);
+    console.log(`Conectando a MongoDB en host ${host} (base: ${dbName || 'default'})...`);
     await mongoose.connect(uri);
     console.log('Conexión establecida con éxito.');
 
@@ -249,6 +278,9 @@ const seedData = async () => {
       }
     ]);
 
+    console.log('=== RESUMEN DE EJECUCIÓN DEL SEED ===');
+    console.log(`Destino: Host: ${host} | Base de datos: ${dbName || '(por defecto)'}`);
+    console.log('Resultado: Se vaciaron 7 colecciones y se crearon 1 config, 1 admin, 3 categorías, 5 productos, 4 localidades, 5 zonas y 6 clientes.');
     console.log('¡Poblado de datos iniciales (Seed) completado con éxito!');
   } catch (error) {
     console.error('Error durante la ejecución del seed:', error);
@@ -263,4 +295,7 @@ if (require.main === module) {
   seedData();
 }
 
+seedData.getMongoTarget = getMongoTarget;
 module.exports = seedData;
+module.exports.seedData = seedData;
+module.exports.getMongoTarget = getMongoTarget;
