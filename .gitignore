@@ -7,3 +7,11 @@ client/dist/
 
 .DS_Store
 *.log
+
+# Entornos y backups
+.env
+.env.local
+.env.*.local
+*.env
+server/backups/
+backups/
