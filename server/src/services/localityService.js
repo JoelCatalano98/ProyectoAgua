@@ -98,7 +98,7 @@ const getHojaDeRutaByLocality = async (localityId) => {
   });
 
   return {
-    localidad,
+    localidad: locality,
     cantidadZonas: zones.length,
     totalClientes: clients.length,
     zonas: zonasResult

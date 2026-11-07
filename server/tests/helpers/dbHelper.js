@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Zone = require('../../src/models/zoneModel');
 
 const validateTestDatabase = (uri) => {
   if (!uri || typeof uri !== 'string') {
@@ -31,11 +32,13 @@ const connectTestDB = async () => {
 
   if (mongoose.connection.readyState === 1) {
     validateTestDatabase(mongoose.connection.name + '_test' === mongoose.connection.name ? uri : `mongodb://localhost/${mongoose.connection.name}`);
+    await Zone.syncIndexes();
     return mongoose.connection;
   }
 
   await mongoose.connect(uri);
   validateTestDatabase(`mongodb://localhost/${mongoose.connection.name}`);
+  await Zone.syncIndexes();
   return mongoose.connection;
 };
 
