@@ -40,6 +40,15 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+const remove = async (req, res, next) => {
+  try {
+    const result = await userService.deleteUser(req.params.id, req.user && req.user.id);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const register = async (req, res, next) => {
   try {
     const user = await userService.registerUser(req.body);
@@ -67,6 +76,7 @@ module.exports = {
   create,
   update,
   resetPassword,
+  remove,
   register,
   login
 };

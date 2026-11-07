@@ -24,6 +24,7 @@ const ConfiguracionPage = () => {
     loadItems: reloadUsers,
     createItem: createUserData,
     updateItem: updateUserData,
+    deleteItem: deleteUserData,
     clearMessages: clearCrudMessages
   } = useCrud('/users');
 
@@ -296,6 +297,31 @@ const ConfiguracionPage = () => {
     confirmModal.open();
   };
 
+  const handleOpenDeleteUser = (user) => {
+    setConfirmError('');
+    setConfirmErrorStatus(null);
+    setConfirmData({
+      title: 'Eliminar usuario',
+      message: `¿Está seguro de que desea eliminar al usuario "${user.nombre || user.email}" (${user.email})? Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, borrar',
+      isDanger: true,
+      action: async () => {
+        try {
+          setConfirmLoading(true);
+          await deleteUserData(user._id);
+          confirmModal.close();
+          successMessage.showMessage('Usuario eliminado correctamente');
+        } catch (err) {
+          setConfirmError(err.message || 'Error al eliminar el usuario');
+          setConfirmErrorStatus(err.status || 400);
+        } finally {
+          setConfirmLoading(false);
+        }
+      }
+    });
+    confirmModal.open();
+  };
+
   return (
     <div className="configuracion-page">
       {/* Encabezado */}
@@ -438,7 +464,7 @@ const ConfiguracionPage = () => {
                     <th>Rol</th>
                     <th>Estado</th>
                     <th>Fecha Alta</th>
-                    <th style={{ width: '150px', textAlign: 'right' }}>Acciones</th>
+                    <th style={{ width: '220px', textAlign: 'right' }}>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -486,6 +512,13 @@ const ConfiguracionPage = () => {
                             title="Restablecer contraseña"
                           >
                             🔑 Clave
+                          </button>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleOpenDeleteUser(u)}
+                            title="Eliminar usuario"
+                          >
+                            🗑️ Borrar
                           </button>
                         </div>
                       </td>
