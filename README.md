@@ -1008,65 +1008,84 @@ distribuidora-agua/
 ├── README.md
 ├── server/
 │   ├── app.js                   (punto de entrada del servidor Express)
+│   ├── jest.config.js           (configuración de entorno de pruebas Jest)
 │   ├── vercel.json              (configuración de reescritura para serverless)
-│   ├── .env                     (variables de entorno con valores activos)
+│   ├── .env                     (valores de ejemplo / placeholders para entrega)
 │   ├── .env.example             (plantilla de variables con valores de ejemplo)
-│   ├── .gitignore               (ignora node_modules/ y logs)
+│   ├── .gitignore               (ignora node_modules/, logs y .env.local)
 │   ├── package.json             (scripts y dependencias del backend)
 │   ├── package-lock.json
 │   ├── api/
 │   │   └── index.js             (punto de entrada serverless para Vercel)
-│   └── src/
-│       ├── config/
-│       │   └── db.js            (conexión a MongoDB con Mongoose)
-│       ├── controllers/         (controladores ligeros: gestionan req y res)
-│       │   ├── categoryController.js
-│       │   ├── clientController.js
-│       │   ├── localityController.js
-│       │   ├── productController.js
-│       │   ├── userController.js
-│       │   └── zoneController.js
-│       ├── middleware/
-│       │   ├── errorHandler.js   (manejador centralizado de errores)
-│       │   ├── loginRateLimiter.js (límite de peticiones contra fuerza bruta)
-│       │   ├── notFound.js       (captura de rutas 404 no existentes)
-│       │   ├── validate.js       (validador declarativo de esquemas Zod)
-│       │   ├── verifyToken.js    (protección de rutas mediante JWT)
-│       │   └── validators/       (esquemas de validación Zod por entidad)
-│       │       ├── categoryValidator.js
-│       │       ├── clientValidator.js
-│       │       ├── commonValidators.js
-│       │       ├── localityValidator.js
-│       │       ├── productValidator.js
-│       │       ├── userValidator.js
-│       │       └── zoneValidator.js
-│       ├── models/              (esquemas Mongoose y pre-save hook de bcrypt)
-│       │   ├── categoryModel.js
-│       │   ├── clientModel.js
-│       │   ├── localityModel.js
-│       │   ├── productModel.js
-│       │   ├── userModel.js
-│       │   └── zoneModel.js
-│       ├── routes/              (definición de rutas y mapeo a controladores)
-│       │   ├── categoryRoute.js
-│       │   ├── clientRoute.js
-│       │   ├── localityRoute.js
-│       │   ├── productRoute.js
-│       │   ├── userRoute.js
-│       │   └── zoneRoute.js
-│       ├── services/            (capa de servicios: lógica de negocio y consultas)
-│       │   ├── categoryService.js
-│       │   ├── clientService.js
-│       │   ├── localityService.js
-│       │   ├── productService.js
-│       │   ├── userService.js
-│       │   └── zoneService.js
-│       └── utils/
-│           ├── AppError.js      (clase personalizada para errores operacionales)
-│           ├── handleError.js   (utilidad para captura de errores asíncronos)
-│           └── seed.js          (script de datos iniciales de prueba)
+│   ├── src/
+│   │   ├── config/
+│   │   │   ├── db.js            (conexión a MongoDB con Mongoose)
+│   │   │   └── envValidator.js  (validación estricta de variables de entorno)
+│   │   ├── controllers/         (controladores ligeros: gestionan req y res)
+│   │   │   ├── categoryController.js
+│   │   │   ├── clientController.js
+│   │   │   ├── localityController.js
+│   │   │   ├── productController.js
+│   │   │   ├── settingsController.js
+│   │   │   ├── userController.js
+│   │   │   └── zoneController.js
+│   │   ├── middleware/
+│   │   │   ├── errorHandler.js   (manejador centralizado de errores)
+│   │   │   ├── loginRateLimiter.js (límite de peticiones contra fuerza bruta)
+│   │   │   ├── notFound.js       (captura de rutas 404 no existentes)
+│   │   │   ├── requireRole.js    (control de acceso basado en roles RBAC)
+│   │   │   ├── validate.js       (validador declarativo de esquemas Zod)
+│   │   │   ├── verifyToken.js    (protección de rutas mediante JWT)
+│   │   │   └── validators/       (esquemas de validación Zod por entidad)
+│   │   │       ├── categoryValidator.js
+│   │   │       ├── clientValidator.js
+│   │   │       ├── commonValidators.js
+│   │   │       ├── localityValidator.js
+│   │   │       ├── productValidator.js
+│   │   │       ├── settingsValidator.js
+│   │   │       ├── userValidator.js
+│   │   │       └── zoneValidator.js
+│   │   ├── models/              (esquemas Mongoose y pre-save hook de bcrypt)
+│   │   │   ├── categoryModel.js
+│   │   │   ├── clientModel.js
+│   │   │   ├── localityModel.js
+│   │   │   ├── productModel.js
+│   │   │   ├── settingsModel.js
+│   │   │   ├── userModel.js
+│   │   │   └── zoneModel.js
+│   │   ├── routes/              (definición de rutas y mapeo a controladores)
+│   │   │   ├── categoryRoute.js
+│   │   │   ├── clientRoute.js
+│   │   │   ├── localityRoute.js
+│   │   │   ├── productRoute.js
+│   │   │   ├── settingsRoute.js
+│   │   │   ├── userRoute.js
+│   │   │   └── zoneRoute.js
+│   │   ├── services/            (capa de servicios: lógica de negocio y consultas)
+│   │   │   ├── categoryService.js
+│   │   │   ├── clientService.js
+│   │   │   ├── localityService.js
+│   │   │   ├── productService.js
+│   │   │   ├── settingsService.js
+│   │   │   ├── userService.js
+│   │   │   └── zoneService.js
+│   │   └── utils/
+│   │       ├── AppError.js      (clase personalizada para errores operacionales)
+│   │       ├── handleError.js   (utilidad para captura de errores asíncronos)
+│   │       └── seed.js          (script de datos iniciales de prueba)
+│   └── tests/                   (suite de pruebas de integración con Jest y Supertest)
+│       ├── categories.test.js
+│       ├── clients.test.js
+│       ├── localities.test.js
+│       ├── products.test.js
+│       ├── security-safety.test.js
+│       ├── users-settings.test.js
+│       ├── zones.test.js
+│       └── helpers/
+│           ├── authHelper.js
+│           ├── dbHelper.js
+│           └── factories.js
 └── client/
-    ├── .env                     (variable de entorno VITE_API_URL)
     ├── .env.example             (plantilla de variable de entorno para Vite)
     ├── .gitignore               (ignora node_modules/ y dist/)
     ├── vercel.json              (reescritura de rutas para SPA en Vercel)
@@ -1084,9 +1103,12 @@ distribuidora-agua/
         │   ├── EntityCrud.jsx   (gestor genérico de operaciones CRUD)
         │   ├── ErrorBoundary.jsx (captura de errores inesperados de React)
         │   ├── Layout.jsx       (maquetación, barra superior y navegación lateral)
-        │   └── ProtectedRoute.jsx (guarda de rutas privadas)
+        │   ├── ProtectedRoute.jsx (guarda de rutas privadas)
+        │   ├── QuickLocalityModal.jsx (alta rápida modal de localidades)
+        │   └── QuickZoneModal.jsx     (alta rápida modal de zonas)
         ├── context/
-        │   └── AuthContext.jsx  (contexto de estado de usuario y autenticación)
+        │   ├── AuthContext.jsx  (contexto de estado de usuario y autenticación)
+        │   └── SettingsContext.jsx (contexto de configuración comercial)
         ├── hooks/               (Custom Hooks desacoplados)
         │   ├── AUDITORIA.md     (informe técnico de auditoría de hooks)
         │   ├── README.md        (documentación de hooks del proyecto)
@@ -1095,10 +1117,12 @@ distribuidora-agua/
         │   ├── useFetch.js      (peticiones asíncronas con bandera de montaje)
         │   ├── useForm.js       (control de campos, errores por campo y submit)
         │   ├── useModal.js      (apertura, cierre y datos de modales)
+        │   ├── useSettings.js   (consumo del contexto de configuración)
         │   └── useTimedMessage.js (notificaciones temporales con autocierre)
         ├── pages/               (vistas completas de la aplicación)
         │   ├── CategoriesPage.jsx
         │   ├── ClientsPage.jsx
+        │   ├── ConfiguracionPage.jsx
         │   ├── DashboardPage.jsx
         │   ├── HojaRutaPage.jsx
         │   ├── LocalitiesPage.jsx
