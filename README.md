@@ -970,12 +970,14 @@ Todas las respuestas de error de la API utilizan una estructura unificada y pred
 - Arquitectura en capas con aislamiento total de modelos dentro de la capa de servicios.
 - Controladores livianos con manejo estandarizado de excepciones mediante clase `AppError` y middleware centralizado `handleError`.
 - Autenticación JWT con expiración configurable y middleware `verifyToken` que diferencia token ausente, alterado o expirado.
+- Control de acceso basado en roles (RBAC): Autorización diferencial entre roles `admin` y `repartidor` en endpoints sensibles y rutas del frontend.
 - Hasheo de claves con `bcrypt` en hook asincrónico `pre('save')` de Mongoose 8.
-- Reglas de negocio para integridad referencial en altas, actualizaciones y bloqueos en eliminaciones dependientes.
+- Reglas de negocio para integridad referencial en altas, actualizaciones y bloqueos en eliminaciones dependientes (HTTP 409).
 - Poblado automático de relaciones (`populate`) en todas las operaciones de consulta, incluyendo populate anidado en clientes.
 - Filtros query avanzados por categoría, zona, localidad y estado comercial.
 - Extra: Hoja de ruta logística por localidad (`/api/localities/:id/hoja-de-ruta`) con ordenamiento inteligente y vista de impresión estilo planilla/Excel.
 - Panel de control web en React con Vite, React Router, diseño responsive mobile-first, tablas convertibles a tarjetas, alertas de error enriquecidas y dashboard de estadísticas.
+- Pruebas automatizadas: Suite de 61 tests de integración con Jest y Supertest cubriendo endpoints, validaciones con Zod, seguridad de rutas y base aislada `_test`.
 
 ### Funcionalidades planificadas (Fases futuras)
 1. **Hojas de ruta extendidas:** Programación de recorridos diarios con distinción entre reparto de agua cargada y recolección de envases vacíos.
@@ -985,12 +987,10 @@ Todas las respuestas de error de la API utilizan una estructura unificada y pred
 5. **Movimientos de reparto en la calle:** Aplicación de registro dinámico para que el conductor asiente entregas, cobros en efectivo/transferencia y roturas de envases en tiempo real.
 6. **Caja diaria y arqueo:** Cierre de caja por vehículo y chofer al finalizar el turno.
 7. **Gestión de flota y vehículos:** Control de kilometraje, capacidad de carga de bidones, seguros y vencimiento de revisiones técnicas obligatorias (RTO).
-8. **Control de acceso basado en roles (RBAC):** Restricciones granulares en la API y front según rol (Administrador, Repartidor, Facturación).
-9. **Paginación y optimización:** Implementación de paginación por cursores o páginas en consultas masivas de clientes y comprobantes.
-10. **Documentación Swagger / OpenAPI:** Especificación interactiva para consumo por terceros.
-11. **Testing automatizado:** Suite de tests unitarios e integración con Jest / Supertest.
-12. **Despliegue continuo (CI/CD):** Dockerización del entorno con Docker Compose y despliegue automatizado en la nube (Render, Railway, AWS).
-13. **Aplicación Web Progresiva (PWA):** Soporte offline para choferes en zonas de reparto con conectividad intermitente.
+8. **Paginación y optimización:** Implementación de paginación por cursores o páginas en consultas masivas de clientes y comprobantes.
+9. **Documentación Swagger / OpenAPI:** Especificación interactiva para consumo por terceros.
+10. **Despliegue continuo (CI/CD):** Pipeline de integración continua y despliegue automatizado en la nube (Docker Compose, GitHub Actions).
+11. **Aplicación Web Progresiva (PWA):** Soporte offline para choferes en zonas de reparto con conectividad intermitente.
 
 ---
 
