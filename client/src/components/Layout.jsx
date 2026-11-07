@@ -2,9 +2,11 @@ import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useModal } from '../hooks/useModal';
+import { useSettings } from '../hooks/useSettings';
 
 const Layout = () => {
   const { user, logout } = useAuth();
+  const { nombreEmpresa, loading: settingsLoading } = useSettings();
   const mobileMenu = useModal(false);
   const navigate = useNavigate();
 
@@ -24,7 +26,9 @@ const Layout = () => {
       <aside className={`sidebar ${mobileMenu.isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <span className="brand-icon">💧</span>
-          <span className="brand-title">Nombre Emp.</span>
+          <span className="brand-title">
+            {settingsLoading ? '\u00A0' : (nombreEmpresa || 'Panel')}
+          </span>
         </div>
 
         <nav className="sidebar-nav">
@@ -91,6 +95,17 @@ const Layout = () => {
             <span className="nav-icon">🚚</span>
             <span>Hoja de Ruta</span>
           </NavLink>
+
+          {user?.rol === 'admin' && (
+            <NavLink
+              to="/configuracion"
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              onClick={mobileMenu.close}
+            >
+              <span className="nav-icon">⚙️</span>
+              <span>Configuración</span>
+            </NavLink>
+          )}
         </nav>
 
         <div className="sidebar-footer">
@@ -126,7 +141,9 @@ const Layout = () => {
             >
               ☰
             </button>
-            <h1 className="page-title">Sistema de Gestión</h1>
+            <h1 className="page-title">
+              {settingsLoading ? 'Sistema de Gestión' : (nombreEmpresa || 'Sistema de Gestión')}
+            </h1>
           </div>
           <div>
             <button

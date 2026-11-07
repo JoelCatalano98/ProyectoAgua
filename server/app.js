@@ -12,6 +12,7 @@ const zoneRoute = require('./src/routes/zoneRoute');
 const localityRoute = require('./src/routes/localityRoute');
 const clientRoute = require('./src/routes/clientRoute');
 const userRoute = require('./src/routes/userRoute');
+const settingsRoute = require('./src/routes/settingsRoute');
 
 // Importación de middlewares de error
 const notFound = require('./src/middleware/notFound');
@@ -87,6 +88,7 @@ app.use('/api/zones', zoneRoute);
 app.use('/api/localities', localityRoute);
 app.use('/api/clients', clientRoute);
 app.use('/api/users', userRoute);
+app.use('/api/settings', settingsRoute);
 
 // Middleware 404 para rutas inexistentes
 app.use(notFound);

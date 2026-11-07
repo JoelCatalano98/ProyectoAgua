@@ -475,6 +475,85 @@ textarea.form-control {
   color: #475569;
 }
 
+/* Tabs / Pestañas de navegación */
+.tabs-header {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--border, #e2e8f0);
+  margin-bottom: 1.25rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--primary, #0284c7);
+}
+
+.tab-btn.active {
+  color: var(--primary, #0284c7);
+  border-bottom-color: var(--primary, #0284c7);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .tabs-header {
+    width: 100%;
+    gap: 0.25rem;
+    padding: 0 0.25rem !important;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-btn {
+    flex: 1 1 0;
+    min-width: 110px;
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+    min-height: 44px;
+  }
+
+  .configuracion-page .card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .configuracion-page .card-header .btn {
+    width: 100%;
+  }
+
+  .configuracion-page .table-actions {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .configuracion-page .table-actions .btn {
+    flex: 1;
+    min-height: 38px;
+  }
+}
+
 /* Tables Responsive (Transform into cards on mobile) */
 .table-container {
   width: 100%;
@@ -507,6 +586,7 @@ textarea.form-control {
   background-color: #f8fafc;
 }
 
+.table-actions,
 .action-buttons {
   display: flex;
   align-items: center;
