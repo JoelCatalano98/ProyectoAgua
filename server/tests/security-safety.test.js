@@ -118,9 +118,37 @@ describe('Protección del Seed para Bases de Datos Remotas (MongoDB Atlas) y Loc
     }).toThrow(/base de tests/i);
   });
 
-  it('debe permitir la ejecución sobre Atlas cuando SEED_CONFIRM="yes"', () => {
+  it('debe abortar en base remota (Atlas) si falta SEED_ADMIN_PASSWORD aunque SEED_CONFIRM sea "yes"', () => {
     expect(() => {
-      validateSeedConfig({ uri: atlasUri, seedConfirm: 'yes' });
-    }).not.toThrow();
+      validateSeedConfig({ uri: atlasUri, seedConfirm: 'yes', seedAdminPassword: '' });
+    }).toThrow(/SEED_ADMIN_PASSWORD/i);
+
+    expect(() => {
+      validateSeedConfig({ uri: atlasUri, seedConfirm: 'yes', seedAdminPassword: '   ' });
+    }).toThrow(/SEED_ADMIN_PASSWORD/i);
+  });
+
+  it('debe permitir la ejecución sobre Atlas cuando SEED_CONFIRM="yes" y SEED_ADMIN_PASSWORD está definida', () => {
+    const config = validateSeedConfig({
+      uri: atlasUri,
+      seedConfirm: 'yes',
+      seedAdminPassword: 'MiClaveAtlasSuperSegura2026!'
+    });
+    expect(config.isRemote).toBe(true);
+    expect(config.adminPassword).toBe('MiClaveAtlasSuperSegura2026!');
+  });
+
+  it('debe usar "admin1234" por defecto en entorno local cuando no se define SEED_ADMIN_PASSWORD', () => {
+    const config = validateSeedConfig({ uri: localUri });
+    expect(config.isRemote).toBe(false);
+    expect(config.adminPassword).toBe('admin1234');
+  });
+
+  it('debe admitir SEED_ADMIN_PASSWORD personalizada en entorno local si se proporciona', () => {
+    const config = validateSeedConfig({
+      uri: localUri,
+      seedAdminPassword: 'clave_local_custom_123'
+    });
+    expect(config.adminPassword).toBe('clave_local_custom_123');
   });
 });

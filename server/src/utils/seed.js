@@ -35,7 +35,8 @@ const getMongoTarget = (uri) => {
 
 const validateSeedConfig = ({
   uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/distribuidora_agua',
-  seedConfirm = process.env.SEED_CONFIRM
+  seedConfirm = process.env.SEED_CONFIRM,
+  seedAdminPassword = process.env.SEED_ADMIN_PASSWORD
 } = {}) => {
   const { host, dbName, isRemote } = getMongoTarget(uri);
 
@@ -43,20 +44,30 @@ const validateSeedConfig = ({
     throw new Error(`ABORTADO POR SEGURIDAD: El seed de desarrollo no debe ejecutarse sobre la base de tests ('${dbName}').`);
   }
 
-  if (isRemote && seedConfirm !== 'yes') {
-    throw new Error(
-      'ABORTADO POR SEGURIDAD: Se detectó una base de datos remota (MongoDB Atlas). Para ejecutar el seed en este entorno, es obligatorio confirmar la operación definiendo la variable de entorno SEED_CONFIRM=yes (ejemplo: SEED_CONFIRM=yes npm run seed).'
-    );
+  if (isRemote) {
+    if (seedConfirm !== 'yes') {
+      throw new Error(
+        'ABORTADO POR SEGURIDAD: Se detectó una base de datos remota (MongoDB Atlas). Para ejecutar el seed en este entorno, es obligatorio confirmar la operación definiendo la variable de entorno SEED_CONFIRM=yes (ejemplo: SEED_CONFIRM=yes npm run seed).'
+      );
+    }
+    if (!seedAdminPassword || !seedAdminPassword.trim()) {
+      throw new Error(
+        'ABORTADO POR SEGURIDAD: Para bases de datos remotas (MongoDB Atlas) es obligatorio definir una contraseña personalizada para el administrador mediante la variable de entorno SEED_ADMIN_PASSWORD.'
+      );
+    }
   }
 
-  return { host, dbName, isRemote };
+  const adminPassword = seedAdminPassword && seedAdminPassword.trim() ? seedAdminPassword.trim() : 'admin1234';
+
+  return { host, dbName, isRemote, adminPassword };
 };
 
 const seedData = async () => {
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/distribuidora_agua';
-  const { host, dbName, isRemote } = validateSeedConfig({
+  const { host, dbName, isRemote, adminPassword } = validateSeedConfig({
     uri,
-    seedConfirm: process.env.SEED_CONFIRM
+    seedConfirm: process.env.SEED_CONFIRM,
+    seedAdminPassword: process.env.SEED_ADMIN_PASSWORD
   });
 
   console.log('=== INICIO DEL SEED DE BASE DE DATOS ===');
@@ -98,7 +109,7 @@ const seedData = async () => {
     const adminUser = await User.create({
       nombre: 'Administrador General',
       email: 'admin@aguapura.com',
-      password: 'admin1234',
+      password: adminPassword,
       rol: 'admin',
       activo: true
     });
