@@ -80,7 +80,7 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
 
 ---
 
-## 2. Esquema de la Base de Datos
+## Esquema de la base de datos
 
 ### Relaciones entre entidades
 - **Category (1) ── (N) Product**: Cada producto o servicio pertenece obligatoriamente a una categoría. No se permite eliminar una categoría con productos asignados.
@@ -167,7 +167,7 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
 
 ---
 
-## 3. Tecnologías Utilizadas
+## Tecnologías utilizadas
 
 - **Backend:**
   - **Node.js** (Entorno de ejecución de JavaScript del lado del servidor)
@@ -189,7 +189,7 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
 
 ---
 
-## 5. Listado Completo de Endpoints
+## Listado completo de endpoints
 
 ### Tabla de Códigos HTTP de Respuesta
 | Código | Significado | Escenario de uso |
@@ -217,7 +217,7 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
 | `POST` | `/api/users/register` | Registro administrativo de usuarios | Sí | `admin` |
 | `PUT` | `/api/users/:id` | Edición de usuario (nombre, rol, activo con reglas de negocio) | Sí | `admin` |
 | `PATCH` | `/api/users/:id/password` | Restablecimiento de contraseña de un usuario | Sí | `admin` |
-| `DELETE` | `/api/users/:id` | Eliminación de un usuario (con reglas de negocio) | Sí | `admin`
+| `DELETE` | `/api/users/:id` | Eliminación de un usuario (con reglas de negocio) | Sí | `admin` |
 | `GET` | `/api/categories` | Listado ordenado de todas las categorías | No | Público |
 | `GET` | `/api/categories/:id` | Detalle de una categoría por su ID | No | Público |
 | `POST` | `/api/categories` | Alta de nueva categoría | Sí | Autenticado |
@@ -248,7 +248,7 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
 
 ---
 
-## 6. Ejemplos de Datos Mock en JSON para Solicitudes y Respuestas
+## Ejemplos de datos mock en JSON para solicitudes y respuestas
 
 ### Autenticación y Usuarios
 
@@ -964,7 +964,7 @@ Todas las respuestas de error de la API utilizan una estructura unificada y pred
 
 ---
 
-## 7. Funcionalidades Implementadas y a Futuro
+## Funcionalidades implementadas y a futuro
 
 ### Funcionalidades implementadas (Fase 1)
 - Arquitectura en capas con aislamiento total de modelos dentro de la capa de servicios.
