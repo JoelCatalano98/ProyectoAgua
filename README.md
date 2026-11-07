@@ -1110,7 +1110,6 @@ distribuidora-agua/
         │   ├── AuthContext.jsx  (contexto de estado de usuario y autenticación)
         │   └── SettingsContext.jsx (contexto de configuración comercial)
         ├── hooks/               (Custom Hooks desacoplados)
-        │   ├── AUDITORIA.md     (informe técnico de auditoría de hooks)
         │   ├── README.md        (documentación de hooks del proyecto)
         │   ├── useAuth.js       (consumo ágil del contexto de autenticación)
         │   ├── useCrud.js       (lógica de estado CRUD y reglas de negocio)
