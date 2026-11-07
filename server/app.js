@@ -1,5 +1,10 @@
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+const dotenv = require('dotenv');
+
+// Cargar primero server/.env.local (si existe) para entorno de desarrollo local privado
+dotenv.config({ path: path.resolve(__dirname, '.env.local') });
+// Cargar luego server/.env (valores base / placeholders; dotenv no sobreescribe variables ya definidas)
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 // Validación central de variables de entorno obligatorias
 if (!process.env.JWT_SECRET || !process.env.JWT_SECRET.trim()) {

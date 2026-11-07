@@ -204,6 +204,10 @@ cd server && npm install && npm run seed && npm start
 - Para desarrollo con recarga automática, podés ejecutar `npm run dev`.
 - El servidor queda disponible en `http://localhost:3000`.
 
+> [!TIP]
+> **Variables de entorno para desarrollo local (`server/.env.local`):**
+> El archivo `server/.env` se mantiene versionado con valores de ejemplo/placeholders según lo requerido por la consigna del TP. Para desarrollo local, la aplicación carga automáticamente `server/.env.local` en primer lugar (ignorado por Git en `.gitignore`). Podés crear `server/.env.local` con tus variables locales reales (ej. un `JWT_SECRET` propio o URI personalizada); `dotenv` dará prioridad a las variables de `.env.local` sin sobreescribirlas con `.env`. La suite de tests automatizados (`npm test`) funciona de forma totalmente independiente con su propia configuración aislada (`_test`).
+
 ### Frontend (`client/`)
 En una segunda terminal:
 ```bash

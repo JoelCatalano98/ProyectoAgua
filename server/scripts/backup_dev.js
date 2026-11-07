@@ -1,6 +1,9 @@
 const path = require('path');
 const fs = require('fs');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+const dotenv = require('dotenv');
+
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const mongoose = require('mongoose');
 
 function validateDevUri(uri) {
