@@ -1,5 +1,5 @@
 const Client = require('../models/clientModel');
-const Locality = require('../models/localityModel');
+const Zone = require('../models/zoneModel');
 const AppError = require('../utils/AppError');
 
 const getAllClients = async (filter = {}) => {
@@ -14,37 +14,36 @@ const getAllClients = async (filter = {}) => {
     }
   }
 
-  // Filtro por zona: busca todas las localidades pertenecientes a dicha zona
+  // Filtro por zona y/o localidad
   if (filter.zona) {
-    const localitiesInZone = await Locality.find({ zona: filter.zona }).select('_id');
-    const localityIds = localitiesInZone.map((l) => l._id.toString());
-
     if (filter.localidad) {
-      if (localityIds.includes(filter.localidad.toString())) {
-        query.localidad = filter.localidad;
+      // Verificar si la zona pertenece a la localidad especificada
+      const zoneDoc = await Zone.findById(filter.zona);
+      if (zoneDoc && zoneDoc.localidad.toString() === filter.localidad.toString()) {
+        query.zona = filter.zona;
       } else {
-        // La localidad solicitada no pertenece a la zona filtrada
-        query.localidad = { $in: [] };
+        query.zona = { $in: [] };
       }
     } else {
-      query.localidad = { $in: localitiesInZone.map((l) => l._id) };
+      query.zona = filter.zona;
     }
   } else if (filter.localidad) {
-    query.localidad = filter.localidad;
+    const zonesInLocality = await Zone.find({ localidad: filter.localidad }).select('_id');
+    query.zona = { $in: zonesInLocality.map((z) => z._id) };
   }
 
   return Client.find(query)
     .populate({
-      path: 'localidad',
-      populate: { path: 'zona' }
+      path: 'zona',
+      populate: { path: 'localidad' }
     })
     .sort({ nombre: 1 });
 };
 
 const getClientById = async (id) => {
   const client = await Client.findById(id).populate({
-    path: 'localidad',
-    populate: { path: 'zona' }
+    path: 'zona',
+    populate: { path: 'localidad' }
   });
 
   if (!client) {
@@ -54,19 +53,23 @@ const getClientById = async (id) => {
 };
 
 const createClient = async (data) => {
-  if (!data.localidad) {
-    throw new AppError('La localidad es requerida', 400);
+  if (!data.zona) {
+    throw new AppError('La zona es requerida', 400, [
+      { campo: 'zona', mensaje: 'La zona es requerida' }
+    ]);
   }
 
-  const localityExists = await Locality.findById(data.localidad);
-  if (!localityExists) {
-    throw new AppError('La localidad especificada no existe', 400);
+  const zoneExists = await Zone.findById(data.zona);
+  if (!zoneExists) {
+    throw new AppError('La zona especificada no existe', 400, [
+      { campo: 'zona', mensaje: 'La zona especificada no existe' }
+    ]);
   }
 
   const client = await Client.create(data);
   return Client.findById(client._id).populate({
-    path: 'localidad',
-    populate: { path: 'zona' }
+    path: 'zona',
+    populate: { path: 'localidad' }
   });
 };
 
@@ -76,10 +79,12 @@ const updateClient = async (id, data) => {
     throw new AppError('Cliente no encontrado', 404);
   }
 
-  if (data.localidad) {
-    const localityExists = await Locality.findById(data.localidad);
-    if (!localityExists) {
-      throw new AppError('La localidad especificada no existe', 400);
+  if (data.zona) {
+    const zoneExists = await Zone.findById(data.zona);
+    if (!zoneExists) {
+      throw new AppError('La zona especificada no existe', 400, [
+        { campo: 'zona', mensaje: 'La zona especificada no existe' }
+      ]);
     }
   }
 
@@ -87,8 +92,8 @@ const updateClient = async (id, data) => {
   await client.save();
 
   return Client.findById(id).populate({
-    path: 'localidad',
-    populate: { path: 'zona' }
+    path: 'zona',
+    populate: { path: 'localidad' }
   });
 };
 

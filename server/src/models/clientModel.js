@@ -17,10 +17,10 @@ const clientSchema = new mongoose.Schema(
       required: [true, 'La dirección es requerida'],
       trim: true
     },
-    localidad: {
+    zona: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Locality',
-      required: [true, 'La localidad es requerida'],
+      ref: 'Zone',
+      required: [true, 'La zona es requerida'],
       index: true
     },
     envasesEnPoder: {

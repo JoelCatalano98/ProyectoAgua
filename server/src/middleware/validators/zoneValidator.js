@@ -1,5 +1,5 @@
 const { z } = require('zod');
-const { rejectEmptyBody } = require('./commonValidators');
+const { objectIdSchema, rejectEmptyBody } = require('./commonValidators');
 
 const diaEnum = z.enum(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'], {
   errorMap: () => ({
@@ -14,6 +14,7 @@ const createZoneSchema = z
       .trim()
       .min(1, 'El nombre no puede estar vacío')
       .max(100, 'El nombre no puede superar los 100 caracteres'),
+    localidad: objectIdSchema,
     diasDeReparto: z
       .array(diaEnum, { invalid_type_error: 'Los días de reparto deben ser un arreglo de cadenas válidas' })
       .optional()
@@ -33,6 +34,7 @@ const updateZoneSchema = rejectEmptyBody(
         .min(1, 'El nombre no puede estar vacío')
         .max(100, 'El nombre no puede superar los 100 caracteres')
         .optional(),
+      localidad: objectIdSchema.optional(),
       diasDeReparto: z
         .array(diaEnum, { invalid_type_error: 'Los días de reparto deben ser un arreglo de cadenas válidas' })
         .optional()
@@ -43,7 +45,14 @@ const updateZoneSchema = rejectEmptyBody(
     .strip()
 );
 
+const zoneQuerySchema = z
+  .object({
+    localidad: objectIdSchema.optional()
+  })
+  .strip();
+
 module.exports = {
   createZoneSchema,
-  updateZoneSchema
+  updateZoneSchema,
+  zoneQuerySchema
 };

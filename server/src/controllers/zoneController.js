@@ -2,7 +2,7 @@ const zoneService = require('../services/zoneService');
 
 const getAll = async (req, res, next) => {
   try {
-    const zones = await zoneService.getAllZones();
+    const zones = await zoneService.getAllZones(req.query);
     res.status(200).json(zones);
   } catch (error) {
     next(error);
@@ -45,20 +45,10 @@ const remove = async (req, res, next) => {
   }
 };
 
-const getHojaDeRuta = async (req, res, next) => {
-  try {
-    const data = await zoneService.getHojaDeRuta(req.params.id);
-    res.status(200).json(data);
-  } catch (error) {
-    next(error);
-  }
-};
-
 module.exports = {
   getAll,
   getById,
   create,
   update,
-  remove,
-  getHojaDeRuta
+  remove
 };

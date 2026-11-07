@@ -64,25 +64,34 @@ const errorHandler = (err, req, res, next) => {
   // 6. Código 11000 de MongoDB (índice único duplicado) -> 409 Conflict
   if (err.code === 11000) {
     let message = 'Ya existe un registro con esos datos únicos';
-    const keys = Object.keys(err.keyValue || {});
-    if (keys.length > 0) {
-      const field = keys[0];
-      const val = err.keyValue[field];
-      const coll = err.collectionName || (err.message || '');
-      if (coll.includes('categories')) {
-        message = 'Ya existe una categoría con ese nombre';
-      } else if (coll.includes('zones')) {
-        message = 'Ya existe una zona con ese nombre';
-      } else if (coll.includes('users')) {
-        message = 'El correo electrónico ya se encuentra registrado';
-      } else {
+    const detalles = [];
+    const coll = err.collectionName || (err.message || '');
+    if (coll.includes('categories')) {
+      message = 'Ya existe una categoría con ese nombre';
+      detalles.push({ campo: 'nombre', mensaje: message });
+    } else if (coll.includes('zones')) {
+      message = 'Ya existe una zona con ese nombre en la localidad seleccionada';
+      detalles.push({ campo: 'nombre', mensaje: message });
+    } else if (coll.includes('users')) {
+      message = 'El correo electrónico ya se encuentra registrado';
+      detalles.push({ campo: 'email', mensaje: message });
+    } else {
+      const keys = Object.keys(err.keyValue || {});
+      if (keys.length > 0) {
+        const field = keys[0];
+        const val = err.keyValue[field];
         message = `Ya existe un registro con el valor '${val}' en el campo '${field}'`;
+        detalles.push({ campo: field, mensaje: message });
       }
     }
-    return res.status(409).json({
+    const response = {
       ok: false,
       message
-    });
+    };
+    if (detalles.length > 0) {
+      response.detalles = detalles;
+    }
+    return res.status(409).json(response);
   }
 
   // 7. Errores de autenticación JWT

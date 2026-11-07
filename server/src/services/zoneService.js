@@ -3,12 +3,16 @@ const Locality = require('../models/localityModel');
 const Client = require('../models/clientModel');
 const AppError = require('../utils/AppError');
 
-const getAllZones = async () => {
-  return Zone.find().sort({ nombre: 1 });
+const getAllZones = async (filter = {}) => {
+  const query = {};
+  if (filter.localidad) {
+    query.localidad = filter.localidad;
+  }
+  return Zone.find(query).populate('localidad').sort({ nombre: 1 });
 };
 
 const getZoneById = async (id) => {
-  const zone = await Zone.findById(id);
+  const zone = await Zone.findById(id).populate('localidad');
   if (!zone) {
     throw new AppError('Zona no encontrada', 404);
   }
@@ -17,13 +21,36 @@ const getZoneById = async (id) => {
 
 const createZone = async (data) => {
   if (!data.nombre || !data.nombre.trim()) {
-    throw new AppError('El nombre de la zona es requerido', 400);
+    throw new AppError('El nombre de la zona es requerido', 400, [
+      { campo: 'nombre', mensaje: 'El nombre de la zona es requerido' }
+    ]);
   }
-  const existing = await Zone.findOne({ nombre: data.nombre.trim() });
+
+  if (!data.localidad) {
+    throw new AppError('La localidad es requerida', 400, [
+      { campo: 'localidad', mensaje: 'La localidad es requerida' }
+    ]);
+  }
+
+  const localityExists = await Locality.findById(data.localidad);
+  if (!localityExists) {
+    throw new AppError('La localidad especificada no existe', 400, [
+      { campo: 'localidad', mensaje: 'La localidad especificada no existe' }
+    ]);
+  }
+
+  const existing = await Zone.findOne({
+    localidad: data.localidad,
+    nombre: data.nombre.trim()
+  });
   if (existing) {
-    throw new AppError('Ya existe una zona con ese nombre', 409);
+    throw new AppError('Ya existe una zona con ese nombre en la localidad seleccionada', 409, [
+      { campo: 'nombre', mensaje: 'Ya existe una zona con ese nombre en la localidad seleccionada' }
+    ]);
   }
-  return Zone.create(data);
+
+  const created = await Zone.create(data);
+  return Zone.findById(created._id).populate('localidad');
 };
 
 const updateZone = async (id, data) => {
@@ -31,14 +58,36 @@ const updateZone = async (id, data) => {
   if (!zone) {
     throw new AppError('Zona no encontrada', 404);
   }
-  if (data.nombre && data.nombre.trim() !== zone.nombre) {
-    const existing = await Zone.findOne({ nombre: data.nombre.trim() });
-    if (existing && existing._id.toString() !== id) {
-      throw new AppError('Ya existe una zona con ese nombre', 409);
+
+  const targetLocalidad = data.localidad || zone.localidad;
+  if (data.localidad) {
+    const localityExists = await Locality.findById(data.localidad);
+    if (!localityExists) {
+      throw new AppError('La localidad especificada no existe', 400, [
+        { campo: 'localidad', mensaje: 'La localidad especificada no existe' }
+      ]);
     }
   }
+
+  const targetNombre = data.nombre !== undefined ? data.nombre.trim() : zone.nombre;
+  const isNameChanged = data.nombre !== undefined && targetNombre !== zone.nombre;
+  const isLocalityChanged = data.localidad && data.localidad.toString() !== zone.localidad.toString();
+
+  if (isNameChanged || isLocalityChanged) {
+    const existing = await Zone.findOne({
+      localidad: targetLocalidad,
+      nombre: targetNombre
+    });
+    if (existing && existing._id.toString() !== id) {
+      throw new AppError('Ya existe una zona con ese nombre en la localidad seleccionada', 409, [
+        { campo: 'nombre', mensaje: 'Ya existe una zona con ese nombre en la localidad seleccionada' }
+      ]);
+    }
+  }
+
   Object.assign(zone, data);
-  return zone.save();
+  await zone.save();
+  return Zone.findById(id).populate('localidad');
 };
 
 const deleteZone = async (id) => {
@@ -47,10 +96,10 @@ const deleteZone = async (id) => {
     throw new AppError('Zona no encontrada', 404);
   }
 
-  // Regla de negocio: No permitir borrar una Zone con localidades
-  const localityCount = await Locality.countDocuments({ zona: id });
-  if (localityCount > 0) {
-    const pluralText = localityCount === 1 ? '1 localidad asociada' : `${localityCount} localidades asociadas`;
+  // Regla de negocio: No permitir borrar una Zone con clientes
+  const clientCount = await Client.countDocuments({ zona: id });
+  if (clientCount > 0) {
+    const pluralText = clientCount === 1 ? '1 cliente asociado' : `${clientCount} clientes asociados`;
     throw new AppError(
       `No se puede eliminar la zona porque tiene ${pluralText}`,
       409
@@ -61,48 +110,10 @@ const deleteZone = async (id) => {
   return { message: 'Zona eliminada correctamente', id };
 };
 
-/**
- * Extra: Hoja de ruta para repartidores
- * Devuelve los clientes activos de las localidades de esa zona, ordenados por localidad y dirección
- */
-const getHojaDeRuta = async (zoneId) => {
-  const zone = await Zone.findById(zoneId);
-  if (!zone) {
-    throw new AppError('Zona no encontrada', 404);
-  }
-
-  const localities = await Locality.find({ zona: zoneId }).select('_id nombre');
-  const localityIds = localities.map((l) => l._id);
-
-  const clients = await Client.find({
-    localidad: { $in: localityIds },
-    activo: true
-  }).populate({
-    path: 'localidad',
-    populate: { path: 'zona' }
-  });
-
-  // Ordenar por nombre de localidad y luego por dirección
-  clients.sort((a, b) => {
-    const locA = a.localidad?.nombre || '';
-    const locB = b.localidad?.nombre || '';
-    const comp = locA.localeCompare(locB);
-    if (comp !== 0) return comp;
-    return (a.direccion || '').localeCompare(b.direccion || '');
-  });
-
-  return {
-    zona: zone,
-    totalClientesActivos: clients.length,
-    clientes: clients
-  };
-};
-
 module.exports = {
   getAllZones,
   getZoneById,
   createZone,
   updateZone,
-  deleteZone,
-  getHojaDeRuta
+  deleteZone
 };
