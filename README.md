@@ -1132,9 +1132,16 @@ El proyecto está configurado para desplegarse en **Vercel** como dos proyectos 
    | Variable | Valor de Ejemplo / Producción | Descripción |
    |---|---|---|
    | `MONGODB_URI` | `mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority` | Cadena de conexión al clúster de MongoDB Atlas |
-   | `JWT_SECRET` | `clave_secreta_super_segura_para_produccion_2026` | **Obligatoria:** Clave secreta robusta para firma de tokens JWT (sin fallback por defecto; el backend aborta si falta) |
+   | `JWT_SECRET` | `<generá-un-secreto-aleatorio>` | **Obligatoria:** Clave secreta robusta para firma de tokens JWT (sin fallback; el backend aborta si falta o si en producción tiene menos de 32 caracteres) |
    | `JWT_EXPIRES_IN` | `2h` | Tiempo de vida del token antes de expirar |
-   *(Nota: la variable `CLIENT_URL` se completará en el paso 3 una vez conocido el dominio del frontend. Recuerde que `JWT_SECRET` debe ser una cadena aleatoria y compleja en producción).*
+
+   > [!WARNING]
+   > **Generación de JWT_SECRET en producción:**
+   > Nunca copies ni reutilices valores de la documentación en un entorno productivo. Generá un secreto criptográfico seguro y aleatorio ejecutando en tu terminal:
+   > ```bash
+   > node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+   > ```
+   *(Nota: la variable `CLIENT_URL` se completará en el paso 3 una vez conocido el dominio del frontend).*
 4. Hacer clic en **"Deploy"**.
 5. Al finalizar, Vercel asignará la URL pública del backend, por ejemplo:
    `https://distribuidora-agua-api.vercel.app`
