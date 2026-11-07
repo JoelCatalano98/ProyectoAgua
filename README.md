@@ -1195,16 +1195,28 @@ Para habilitar la protección CORS en producción y admitir peticiones legítima
 
 #### 4. Poblado inicial de datos en MongoDB Atlas (Seed)
 Para inicializar el catálogo de productos, zonas, localidades, clientes y el usuario administrador en la base de datos de producción:
+
+> [!IMPORTANT]
+> **Protección en bases remotas (Atlas):**  
+> Para prevenir sobreescrituras accidentales en producción, el script de seed exige confirmar la operación mediante `SEED_CONFIRM=yes` y definir una contraseña propia y segura para el administrador mediante `SEED_ADMIN_PASSWORD` (el valor por defecto `admin1234` está bloqueado para bases remotas).
+
+En **Bash / Linux / macOS**:
 ```bash
 cd server
-MONGODB_URI="mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority" npm run seed
+MONGODB_URI="mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority" \
+SEED_CONFIRM=yes \
+SEED_ADMIN_PASSWORD="<tu-contraseña-segura-admin>" \
+npm run seed
 ```
-> En **Windows PowerShell**:
-> ```powershell
-> cd server
-> $env:MONGODB_URI="mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority"
-> npm run seed
-> ```
+
+En **Windows PowerShell**:
+```powershell
+cd server
+$env:MONGODB_URI="mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority"
+$env:SEED_CONFIRM="yes"
+$env:SEED_ADMIN_PASSWORD="<tu-contraseña-segura-admin>"
+npm run seed
+```
 
 ---
 
@@ -1215,4 +1227,4 @@ MONGODB_URI="mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuido
 
 ### Usuario de prueba (cargado por el Seed)
 - **Email:** `admin@aguapura.com`
-- **Contraseña:** `admin1234`
+- **Contraseña:** `admin1234` (en entorno local) o la configurada mediante `SEED_ADMIN_PASSWORD` (en MongoDB Atlas).
