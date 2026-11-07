@@ -12,8 +12,13 @@ const zoneSchema = new mongoose.Schema(
     nombre: {
       type: String,
       required: [true, 'El nombre de la zona es requerido'],
-      unique: true,
       trim: true
+    },
+    localidad: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Locality',
+      required: [true, 'La localidad es requerida'],
+      index: true
     },
     diasDeReparto: {
       type: [String],
@@ -31,5 +36,8 @@ const zoneSchema = new mongoose.Schema(
     timestamps: true
   }
 );
+
+// Nombre de zona único dentro de cada localidad
+zoneSchema.index({ localidad: 1, nombre: 1 }, { unique: true });
 
 module.exports = mongoose.model('Zone', zoneSchema);

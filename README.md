@@ -57,22 +57,22 @@ El sistema administra el catálogo comercial de productos y servicios de una dis
 | Extra | Por qué está / Dónde está |
 |---|---|
 | **Frontend completo (`client/`)** | Panel web SPA responsive para operar todo el sistema comercial y logístico |
-| **Entidades de Zonas, Localidades y Clientes** | Ampliación del dominio con relaciones 1:N y populate anidado (`server/src/models/`, `server/src/routes/`, `server/src/services/`) |
-| **Hoja de ruta logística** | Generación de hoja de reparto ordenada por zona y localidad con vista de impresión (`server/src/services/zoneService.js`, `client/src/pages/HojaRutaPage.jsx`) |
+| **Entidades de Localidades, Zonas y Clientes** | Ampliación del dominio con jerarquía Localidad → Zona → Cliente y populate anidado (`server/src/models/`, `server/src/routes/`, `server/src/services/`) |
+| **Hoja de ruta logística por localidad** | Generación de hoja de reparto clasificada por localidad, dividida por zonas y ordenada por dirección con vista de impresión estilo planilla/Excel (`server/src/services/localityService.js`, `client/src/pages/HojaRutaPage.jsx`) |
 | **Validaciones rigurosas con Zod** | Validación estricta de esquema en body, params y query con reporte detallado de errores por campo (`server/src/middleware/validators/`, `server/src/middleware/validate.js`) |
 | **Rate limiting en login** | Mitigación de ataques de fuerza bruta mediante `express-rate-limit` (HTTP 429) (`server/src/middleware/loginRateLimiter.js`) |
 | **Custom Hooks desacoplados** | Modularización de lógica en React (`client/src/hooks/`: `useCrud`, `useForm`, `useFetch`, `useAuth`, `useModal`, `useTimedMessage`) |
 | **`PATCH` además de `PUT` en productos** | `PATCH /api/products/:id` para actualización parcial de campos sin requerir el documento entero (`server/src/routes/productRoute.js`, `server/src/controllers/productController.js`) |
 | **Manejo de errores centralizado** | Middleware `server/src/middleware/errorHandler.js` que unifica respuestas JSON de error y traduce fallos de Mongoose y Zod |
-| **Protección contra borrado con dependencias (HTTP 409)** | Impide eliminar categorías con productos, zonas con localidades y localidades con clientes (`server/src/services/`) |
-| **Verificación de existencia de referencias** | Validación en servicios de que categorías, zonas y localidades referenciadas existan antes de asociarlas |
-| **Filtros avanzados por query params** | Filtrado en productos (`?categoria=`), localidades (`?zona=`) y clientes (`?zona=`, `?localidad=`, `?activo=`) |
+| **Protección contra borrado con dependencias (HTTP 409)** | Impide eliminar categorías con productos, localidades con zonas y zonas con clientes (`server/src/services/`) |
+| **Verificación de existencia de referencias** | Validación en servicios de que categorías, localidades y zonas referenciadas existan antes de asociarlas |
+| **Filtros avanzados por query params** | Filtrado en productos (`?categoria=`), zonas (`?localidad=`) y clientes (`?zona=`, `?localidad=`, `?activo=`) |
 | **Seed de base de datos** | Script `npm run seed` con catálogo y clientes de ejemplo para probar la aplicación inmediatamente (`server/src/utils/seed.js`) |
 | **Ruta `GET /` de bienvenida** | Endpoint base con información y estado de la API (`server/app.js`) |
 
 ### Lo que la consigna permite cambiar
 
-- **El dominio es libre.** Se pueden usar colecciones distintas a Productos y Categorías, siempre que **al menos un campo sea una referencia** a otra colección (en este proyecto se modelaron Productos → Categorías, Localidades → Zonas y Clientes → Localidades).
+- **El dominio es libre.** Se pueden usar colecciones distintas a Productos y Categorías, siempre que **al menos un campo sea una referencia** a otra colección (en este proyecto se modelaron Productos → Categorías, Zonas → Localidades y Clientes → Zonas con populate anidado Cliente → Zona → Localidad).
 - El frontend no es obligatorio (en este proyecto se desarrolló una SPA completa en `client/`).
 - Si no querés entregar el `.env` por seguridad, hay que hostear la aplicación (acá se versiona `server/.env` según lo requerido por la consigna y se provee `server/.env.example` como plantilla).
 
@@ -82,8 +82,9 @@ El sistema administra el catálogo comercial de productos y servicios de una dis
 
 ### Relaciones entre entidades
 - **Category (1) ── (N) Product**: Cada producto o servicio pertenece obligatoriamente a una categoría. No se permite eliminar una categoría con productos asignados.
-- **Zone (1) ── (N) Locality**: Cada localidad pertenece obligatoriamente a una zona de distribución. No se permite eliminar una zona con localidades vinculadas.
-- **Locality (1) ── (N) Client**: Cada cliente se encuentra radicado en una localidad. No se permite eliminar una localidad con clientes activos o registrados.
+- **Locality (1) ── (N) Zone**: Cada localidad o ciudad grande (ej. Rosario, Santa Fe) se divide en múltiples zonas para organizar el reparto sin ir y venir. No se permite eliminar una localidad con zonas vinculadas (HTTP 409).
+- **Zone (1) ── (N) Client**: Cada zona pertenece obligatoriamente a una localidad y agrupa directamente a sus clientes asignados. El nombre de la zona es único dentro de cada localidad (índice compuesto `localidad + nombre`). No se permite eliminar una zona con clientes asociados (HTTP 409).
+- **Client**: Cada cliente está asociado obligatoriamente a una `zona`. La localidad se obtiene automáticamente a través de la zona mediante populate anidado.
 
 ### Tabla de campos por colección
 
@@ -108,22 +109,22 @@ El sistema administra el catálogo comercial de productos y servicios de una dis
 | `createdAt` | Date | Sí (Auto) | No | Marca temporal de creación |
 | `updatedAt` | Date | Sí (Auto) | No | Marca temporal de última modificación |
 
-#### Colección: `zones`
-| Campo | Tipo | Requerido | Único | Descripción |
-|---|---|---|---|---|
-| `_id` | ObjectId | Sí (Auto) | Sí | Identificador único de la zona |
-| `nombre` | String | Sí | Sí | Nombre representativo de la zona de reparto |
-| `diasDeReparto`| Array de Strings | No | No | Días asignados para visitas (Lunes a Sábado) |
-| `createdAt` | Date | Sí (Auto) | No | Marca temporal de creación |
-| `updatedAt` | Date | Sí (Auto) | No | Marca temporal de última modificación |
-
 #### Colección: `localities`
 | Campo | Tipo | Requerido | Único | Descripción |
 |---|---|---|---|---|
 | `_id` | ObjectId | Sí (Auto) | Sí | Identificador único de la localidad |
 | `nombre` | String | Sí | No | Nombre de la localidad o ciudad |
 | `provincia` | String | No (def. 'Santa Fe') | No | Jurisdicción provincial |
-| `zona` | ObjectId (ref Zone) | Sí | No (Index) | Referencia indexada a la zona logística |
+| `createdAt` | Date | Sí (Auto) | No | Marca temporal de creación |
+| `updatedAt` | Date | Sí (Auto) | No | Marca temporal de última modificación |
+
+#### Colección: `zones`
+| Campo | Tipo | Requerido | Único | Descripción |
+|---|---|---|---|---|
+| `_id` | ObjectId | Sí (Auto) | Sí | Identificador único de la zona |
+| `nombre` | String | Sí | Compuesto | Nombre de la zona (único dentro de su localidad) |
+| `localidad` | ObjectId (ref Locality) | Sí | No (Index) | Referencia indexada a la localidad de pertenencia |
+| `diasDeReparto`| Array de Strings | No | No | Días asignados para visitas (Lunes a Sábado) |
 | `createdAt` | Date | Sí (Auto) | No | Marca temporal de creación |
 | `updatedAt` | Date | Sí (Auto) | No | Marca temporal de última modificación |
 
@@ -134,7 +135,7 @@ El sistema administra el catálogo comercial de productos y servicios de una dis
 | `nombre` | String | Sí | No | Razón social o nombre del particular |
 | `telefono` | String | No | No | Teléfono de contacto |
 | `direccion` | String | Sí | No | Dirección de entrega y facturación |
-| `localidad` | ObjectId (ref Locality) | Sí | No (Index) | Referencia indexada a la localidad |
+| `zona` | ObjectId (ref Zone) | Sí | No (Index) | Referencia indexada a la zona logística de reparto |
 | `envasesEnPoder` | Number | No (def. 0) | No | Cantidad de bidones en comodato (>= 0) |
 | `saldo` | Number | No (def. 0) | No | Balance de cuenta corriente (positivo o negativo) |
 | `activo` | Boolean | No (def. true) | No | Estado comercial (activo/pausado) |
@@ -272,20 +273,20 @@ npm test
 | `PUT` | `/api/products/:id` | Actualización completa o de campos de producto | Sí | Autenticado |
 | `PATCH` | `/api/products/:id` | Actualización parcial de producto | Sí | Autenticado |
 | `DELETE` | `/api/products/:id` | Eliminación de producto | Sí | Autenticado |
-| `GET` | `/api/zones` | Listado de zonas con días de reparto | No | Público |
-| `GET` | `/api/zones/:id` | Detalle de una zona logística | No | Público |
-| `GET` | `/api/zones/:id/hoja-de-ruta` | Clientes activos de la zona ordenados por localidad y calle | No | Público |
-| `POST` | `/api/zones` | Alta de nueva zona logística | Sí | Autenticado |
-| `PUT` | `/api/zones/:id` | Actualización de zona y días de atención | Sí | Autenticado |
-| `DELETE` | `/api/zones/:id` | Eliminación de zona (falla con 409 si tiene localidades asociadas) | Sí | Autenticado |
-| `GET` | `/api/localities` | Listado de localidades con zona poblada (filtro `?zona=`) | No | Público |
-| `GET` | `/api/localities/:id` | Detalle de localidad con zona poblada | No | Público |
-| `POST` | `/api/localities` | Alta de localidad (valida existencia de la zona) | Sí | Autenticado |
+| `GET` | `/api/localities` | Listado ordenado de localidades | No | Público |
+| `GET` | `/api/localities/:id` | Detalle de localidad | No | Público |
+| `GET` | `/api/localities/:id/hoja-de-ruta` | Hoja de reparto por localidad con zonas y clientes activos ordenados por dirección | No | Público |
+| `POST` | `/api/localities` | Alta de localidad | Sí | Autenticado |
 | `PUT` | `/api/localities/:id` | Modificación parcial de localidad | Sí | Autenticado |
-| `DELETE` | `/api/localities/:id` | Eliminación de localidad (falla con 409 si tiene clientes asociados) | Sí | Autenticado |
-| `GET` | `/api/clients` | Listado con localidad y zona pobladas (`?zona=`, `?localidad=`, `?activo=`) | No | Público |
-| `GET` | `/api/clients/:id` | Detalle de cliente con localidad y zona anidadas | No | Público |
-| `POST` | `/api/clients` | Alta de cliente (valida existencia de localidad) | Sí | Autenticado |
+| `DELETE` | `/api/localities/:id` | Eliminación de localidad (falla con 409 si tiene zonas asociadas) | Sí | Autenticado |
+| `GET` | `/api/zones` | Listado de zonas con localidad poblada (filtro `?localidad=`) | No | Público |
+| `GET` | `/api/zones/:id` | Detalle de una zona logística con su localidad | No | Público |
+| `POST` | `/api/zones` | Alta de nueva zona logística (valida existencia de la localidad) | Sí | Autenticado |
+| `PUT` | `/api/zones/:id` | Actualización de zona y días de atención | Sí | Autenticado |
+| `DELETE` | `/api/zones/:id` | Eliminación de zona (falla con 409 si tiene clientes asociados) | Sí | Autenticado |
+| `GET` | `/api/clients` | Listado con zona y localidad anidada pobladas (`?zona=`, `?localidad=`, `?activo=`) | No | Público |
+| `GET` | `/api/clients/:id` | Detalle de cliente con zona y localidad anidadas | No | Público |
+| `POST` | `/api/clients` | Alta de cliente (valida existencia de zona) | Sí | Autenticado |
 | `PUT` | `/api/clients/:id` | Modificación parcial de cliente | Sí | Autenticado |
 | `DELETE` | `/api/clients/:id` | Eliminación de cliente | Sí | Autenticado |
 
@@ -591,8 +592,8 @@ npm test
 
 ### Clientes y Populate Anidado
 
-#### GET `/api/clients?zona=67be89b52044b7d1420cf333&activo=true`
-- **Response `200 OK` (Populate anidado Cliente -> Localidad -> Zona):**
+#### GET `/api/clients?localidad=67be89b52044b7d1420cf444&activo=true`
+- **Response `200 OK` (Populate anidado Cliente -> Zona -> Localidad):**
   ```json
   [
     {
@@ -604,20 +605,55 @@ npm test
       "saldo": 0,
       "activo": true,
       "observaciones": "Entregar de 8 a 12 hs",
-      "localidad": {
-        "_id": "67be89b52044b7d1420cf444",
-        "nombre": "Santa Fe Capital",
-        "provincia": "Santa Fe",
-        "zona": {
-          "_id": "67be89b52044b7d1420cf333",
-          "nombre": "Zona Centro y Puerto",
-          "diasDeReparto": ["Lunes", "Miércoles", "Viernes"]
+      "zona": {
+        "_id": "67be89b52044b7d1420cf333",
+        "nombre": "Zona Centro y Puerto",
+        "diasDeReparto": ["Lunes", "Miércoles", "Viernes"],
+        "localidad": {
+          "_id": "67be89b52044b7d1420cf444",
+          "nombre": "Santa Fe Capital",
+          "provincia": "Santa Fe"
         }
       },
       "createdAt": "2026-10-27T23:00:00.000Z",
       "updatedAt": "2026-10-27T23:00:00.000Z"
     }
   ]
+  ```
+
+### Hoja de Ruta Imprimible por Localidad
+
+#### GET `/api/localities/:id/hoja-de-ruta`
+- **Response `200 OK` (Localidad con zonas y clientes ordenados por dirección):**
+  ```json
+  {
+    "localidad": {
+      "_id": "67be89b52044b7d1420cf444",
+      "nombre": "Santa Fe Capital",
+      "provincia": "Santa Fe"
+    },
+    "cantidadZonas": 2,
+    "totalClientes": 2,
+    "zonas": [
+      {
+        "_id": "67be89b52044b7d1420cf333",
+        "nombre": "Zona Centro y Puerto",
+        "diasDeReparto": ["Lunes", "Miércoles", "Viernes"],
+        "cantidadClientes": 1,
+        "clientes": [
+          {
+            "_id": "67be89b52044b7d1420cf555",
+            "nombre": "Consultorio Médico San Jerónimo",
+            "direccion": "San Jerónimo 2840",
+            "telefono": "342-4521890",
+            "envasesEnPoder": 4,
+            "saldo": 0,
+            "observaciones": "Entregar de 8 a 12 hs"
+          }
+        ]
+      }
+    ]
+  }
   ```
 
 ### Formato Único de Error y Respuestas Globales
@@ -727,7 +763,7 @@ Todas las respuestas de error de la API utilizan una estructura unificada y pred
 - Reglas de negocio para integridad referencial en altas, actualizaciones y bloqueos en eliminaciones dependientes.
 - Poblado automático de relaciones (`populate`) en todas las operaciones de consulta, incluyendo populate anidado en clientes.
 - Filtros query avanzados por categoría, zona, localidad y estado comercial.
-- Extra: Hoja de ruta logística (`/api/zones/:id/hoja-de-ruta`) con ordenamiento inteligente y vista de impresión web.
+- Extra: Hoja de ruta logística por localidad (`/api/localities/:id/hoja-de-ruta`) con ordenamiento inteligente y vista de impresión estilo planilla/Excel.
 - Panel de control web en React con Vite, React Router, diseño responsive mobile-first, tablas convertibles a tarjetas, alertas de error enriquecidas y dashboard de estadísticas.
 
 ### Funcionalidades planificadas (Fases futuras)

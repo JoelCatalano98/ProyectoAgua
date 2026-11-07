@@ -18,7 +18,7 @@ const createClientSchema = z
       .trim()
       .min(1, 'La dirección no puede estar vacía')
       .max(200, 'La dirección no puede superar los 200 caracteres'),
-    localidad: objectIdSchema,
+    zona: objectIdSchema,
     envasesEnPoder: z.coerce
       .number({ invalid_type_error: 'Los envases en poder deben ser un número' })
       .int('Los envases en poder deben ser un número entero')
@@ -56,7 +56,7 @@ const updateClientSchema = rejectEmptyBody(
         .min(1, 'La dirección no puede estar vacía')
         .max(200, 'La dirección no puede superar los 200 caracteres')
         .optional(),
-      localidad: objectIdSchema.optional(),
+      zona: objectIdSchema.optional(),
       envasesEnPoder: z.coerce
         .number({ invalid_type_error: 'Los envases en poder deben ser un número' })
         .int('Los envases en poder deben ser un número entero')

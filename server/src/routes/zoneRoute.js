@@ -6,17 +6,13 @@ const validate = require('../middleware/validate');
 const { idParamSchema } = require('../middleware/validators/commonValidators');
 const {
   createZoneSchema,
-  updateZoneSchema
+  updateZoneSchema,
+  zoneQuerySchema
 } = require('../middleware/validators/zoneValidator');
 
-// Rutas públicas
-router.get('/', zoneController.getAll);
+// Rutas públicas (soporta filtro ?localidad=)
+router.get('/', validate(zoneQuerySchema, 'query'), zoneController.getAll);
 router.get('/:id', validate(idParamSchema, 'params'), zoneController.getById);
-router.get(
-  '/:id/hoja-de-ruta',
-  validate(idParamSchema, 'params'),
-  zoneController.getHojaDeRuta
-);
 
 // Rutas protegidas
 router.post(

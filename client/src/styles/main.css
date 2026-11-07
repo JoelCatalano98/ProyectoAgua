@@ -555,19 +555,22 @@ textarea.form-control {
 }
 
 /* Tables Responsive (Transform into cards on mobile) */
-.table-container {
+.table-container,
+.table-responsive {
   width: 100%;
   overflow-x: auto;
 }
 
-.data-table {
+.data-table,
+.table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.925rem;
 }
 
-.data-table th {
+.data-table th,
+.table th {
   background-color: #f8fafc;
   padding: 0.875rem 1rem;
   font-weight: 600;
@@ -576,13 +579,15 @@ textarea.form-control {
   white-space: nowrap;
 }
 
-.data-table td {
+.data-table td,
+.table td {
   padding: 0.875rem 1rem;
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
 }
 
-.data-table tr:hover {
+.data-table tr:hover,
+.table tr:hover {
   background-color: #f8fafc;
 }
 
@@ -816,33 +821,205 @@ textarea.form-control {
   min-width: 180px;
 }
 
-/* Print styling for Hoja de Ruta */
+/* ==========================================================================
+   Estilos Planilla / Excel para Hoja de Ruta (Pantalla e Impresión)
+   ========================================================================== */
+.hoja-ruta-container {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #000000;
+  background: #ffffff;
+  padding: 0;
+  margin: 0;
+}
+
+.hoja-localidad-seccion {
+  background: #ffffff;
+  margin-bottom: 24px;
+}
+
+.hoja-localidad-header {
+  border: 1px solid #000000;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 0;
+}
+
+.hoja-zona-bloque {
+  margin-top: 10px;
+}
+
+.hoja-zona-banda {
+  background-color: #f0f0f0;
+  border: 1px solid #000000;
+  border-bottom: none;
+  padding: 6px 10px;
+  font-size: 11pt;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 0;
+}
+
+.hoja-tabla-excel {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 9.5pt;
+  color: #000000;
+  background: #ffffff;
+  border-radius: 0;
+}
+
+.hoja-tabla-excel th,
+.hoja-tabla-excel td {
+  border: 1px solid #000000;
+  padding: 5px 6px;
+  text-align: left;
+  vertical-align: middle;
+  border-radius: 0;
+}
+
+.hoja-tabla-excel thead {
+  display: table-header-group;
+}
+
+.hoja-tabla-excel th {
+  background-color: #f7f7f7;
+  font-weight: bold;
+}
+
+.hoja-tabla-excel tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.checkbox-cuadrado {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid #000000;
+  background: #ffffff;
+  vertical-align: middle;
+  border-radius: 0;
+}
+
+/* ==========================================================================
+   Reglas de Impresión (@media print)
+   ========================================================================== */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 6mm;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 10pt !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .app-container {
+    display: block !important;
+    min-height: auto !important;
+  }
+
   .sidebar,
   .topbar,
   .hamburger-btn,
   .no-print,
+  button,
   .btn {
     display: none !important;
   }
 
   .main-content {
-    margin-left: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
   }
 
   .content-body {
     padding: 0 !important;
+    margin: 0 !important;
   }
 
   .card {
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
   }
 
-  .data-table th,
-  .data-table td {
-    padding: 0.5rem !important;
-    font-size: 11pt !important;
+  /* Forzar hoja nueva antes de cada localidad (excepto la primera) */
+  .hoja-localidad-seccion {
+    page-break-before: always !important;
+    break-before: page !important;
+    margin-bottom: 0 !important;
+  }
+
+  .hoja-localidad-seccion:first-child {
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+  }
+
+  /* Banda gris suave en impresión */
+  .hoja-zona-banda {
+    background-color: #eeeeee !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    border: 1px solid #000000 !important;
+    border-bottom: none !important;
+  }
+
+  .hoja-tabla-excel {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .hoja-tabla-excel thead {
+    display: table-header-group !important;
+  }
+
+  .hoja-tabla-excel th,
+  .hoja-tabla-excel td {
+    border: 1px solid #000000 !important;
+    padding: 4px 5px !important;
+    font-size: 9pt !important;
+    color: #000000 !important;
+  }
+
+  .hoja-tabla-excel th {
+    background-color: #f7f7f7 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .hoja-tabla-excel tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .checkbox-cuadrado {
+    display: inline-block !important;
+    width: 13px !important;
+    height: 13px !important;
+    border: 1.5px solid #000000 !important;
+    background: #ffffff !important;
   }
 }

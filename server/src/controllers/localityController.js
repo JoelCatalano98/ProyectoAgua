@@ -2,7 +2,7 @@ const localityService = require('../services/localityService');
 
 const getAll = async (req, res, next) => {
   try {
-    const localities = await localityService.getAllLocalities(req.query);
+    const localities = await localityService.getAllLocalities();
     res.status(200).json(localities);
   } catch (error) {
     next(error);
@@ -45,10 +45,20 @@ const remove = async (req, res, next) => {
   }
 };
 
+const getHojaDeRuta = async (req, res, next) => {
+  try {
+    const data = await localityService.getHojaDeRutaByLocality(req.params.id);
+    res.status(200).json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAll,
   getById,
   create,
   update,
-  remove
+  remove,
+  getHojaDeRuta
 };

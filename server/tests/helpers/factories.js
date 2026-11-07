@@ -16,26 +16,34 @@ const createCategory = async (overrides = {}) => {
   });
 };
 
-const createZone = async (overrides = {}) => {
-  return Zone.create({
-    nombre: `Zona ${uniqueId()}`,
-    diasDeReparto: ['Lunes', 'Miércoles', 'Viernes'],
+const createLocality = async (overrides = {}) => {
+  return Locality.create({
+    nombre: `Localidad ${uniqueId()}`,
+    provincia: 'Santa Fe',
     ...overrides
   });
 };
 
-const createLocality = async (zoneId, overrides = {}) => {
-  let targetZoneId = zoneId;
-  if (!targetZoneId) {
-    const zone = await createZone();
-    targetZoneId = zone._id;
+const createZone = async (localityId = null, overrides = {}) => {
+  let targetLocalityId = localityId;
+  let targetOverrides = overrides;
+
+  // Si el primer parámetro es un objeto de overrides en vez de un ID
+  if (localityId && typeof localityId === 'object' && !localityId._bsontype && !localityId._id) {
+    targetOverrides = localityId;
+    targetLocalityId = targetOverrides.localidad || null;
   }
 
-  return Locality.create({
-    nombre: `Localidad ${uniqueId()}`,
-    provincia: 'Santa Fe',
-    zona: targetZoneId,
-    ...overrides
+  if (!targetLocalityId) {
+    const loc = await createLocality();
+    targetLocalityId = loc._id;
+  }
+
+  return Zone.create({
+    nombre: `Zona ${uniqueId()}`,
+    localidad: targetLocalityId,
+    diasDeReparto: ['Lunes', 'Miércoles', 'Viernes'],
+    ...targetOverrides
   });
 };
 
@@ -56,23 +64,30 @@ const createProduct = async (categoryId, overrides = {}) => {
   });
 };
 
-const createClient = async (localityId, overrides = {}) => {
-  let targetLocalityId = localityId;
-  if (!targetLocalityId) {
-    const locality = await createLocality();
-    targetLocalityId = locality._id;
+const createClient = async (zoneId = null, overrides = {}) => {
+  let targetZoneId = zoneId;
+  let targetOverrides = overrides;
+
+  if (zoneId && typeof zoneId === 'object' && !zoneId._bsontype && !zoneId._id) {
+    targetOverrides = zoneId;
+    targetZoneId = targetOverrides.zona || null;
+  }
+
+  if (!targetZoneId) {
+    const zone = await createZone();
+    targetZoneId = zone._id;
   }
 
   return Client.create({
     nombre: `Cliente ${uniqueId()}`,
     telefono: '342-1234567',
     direccion: 'Calle Falsa 123',
-    localidad: targetLocalityId,
+    zona: targetZoneId,
     envasesEnPoder: 2,
     saldo: 0,
     activo: true,
     observaciones: 'Sin observaciones',
-    ...overrides
+    ...targetOverrides
   });
 };
 
@@ -96,8 +111,8 @@ const createSettings = async (overrides = {}) => {
 
 module.exports = {
   createCategory,
-  createZone,
   createLocality,
+  createZone,
   createProduct,
   createClient,
   createUser,

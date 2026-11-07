@@ -4,14 +4,24 @@ const mongoose = require('mongoose');
 
 const Category = require('../models/categoryModel');
 const Product = require('../models/productModel');
-const Zone = require('../models/zoneModel');
 const Locality = require('../models/localityModel');
+const Zone = require('../models/zoneModel');
 const Client = require('../models/clientModel');
 const User = require('../models/userModel');
 const Settings = require('../models/settingsModel');
 
 const seedData = async () => {
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/distribuidora_agua';
+
+  // Protección de seguridad
+  if (uri.startsWith('mongodb+srv://') || uri.includes('mongodb.net')) {
+    throw new Error('ABORTADO POR SEGURIDAD: No se puede ejecutar el seed sobre MongoDB Atlas / producción.');
+  }
+  const dbNameMatch = uri.match(/\/([^/?]+)(?:\?|$)/);
+  const dbName = dbNameMatch ? dbNameMatch[1] : '';
+  if (dbName.endsWith('_test')) {
+    throw new Error(`ABORTADO POR SEGURIDAD: El seed de desarrollo no debe ejecutarse sobre la base de tests ('${dbName}').`);
+  }
 
   try {
     console.log(`Conectando a MongoDB en: ${uri}`);
@@ -23,8 +33,8 @@ const seedData = async () => {
     await Promise.all([
       Category.deleteMany({}),
       Product.deleteMany({}),
-      Zone.deleteMany({}),
       Locality.deleteMany({}),
+      Zone.deleteMany({}),
       Client.deleteMany({}),
       User.deleteMany({}),
       Settings.deleteMany({})
@@ -37,7 +47,7 @@ const seedData = async () => {
     });
     console.log(`Configuración creada: ${settings.nombreEmpresa}`);
 
-    // 3. Creación del usuario administrador con create() para disparar el hook de bcrypt
+    // 3. Creación del usuario administrador
     console.log('Creando usuario administrador...');
     const adminUser = await User.create({
       nombre: 'Administrador General',
@@ -109,44 +119,24 @@ const seedData = async () => {
       }
     ]);
 
-    // 6. Creación de Zonas (2)
-    console.log('Creando zonas de reparto...');
-    const zonasCreadas = await Zone.insertMany([
-      {
-        nombre: 'Zona Centro y Puerto',
-        diasDeReparto: ['Lunes', 'Miércoles', 'Viernes']
-      },
-      {
-        nombre: 'Zona Norte y Boulevard',
-        diasDeReparto: ['Martes', 'Jueves', 'Sábado']
-      }
-    ]);
-
-    const zonaCentro = zonasCreadas.find((z) => z.nombre === 'Zona Centro y Puerto');
-    const zonaNorte = zonasCreadas.find((z) => z.nombre === 'Zona Norte y Boulevard');
-
-    // 7. Creación de Localidades de Santa Fe (4 repartidas en esas zonas)
+    // 6. Creación de Localidades (4)
     console.log('Creando localidades...');
     const localidadesCreadas = await Locality.insertMany([
       {
         nombre: 'Santa Fe Capital',
-        provincia: 'Santa Fe',
-        zona: zonaCentro._id
+        provincia: 'Santa Fe'
       },
       {
         nombre: 'Santo Tomé',
-        provincia: 'Santa Fe',
-        zona: zonaCentro._id
+        provincia: 'Santa Fe'
       },
       {
         nombre: 'Rincón',
-        provincia: 'Santa Fe',
-        zona: zonaNorte._id
+        provincia: 'Santa Fe'
       },
       {
         nombre: 'Recreo',
-        provincia: 'Santa Fe',
-        zona: zonaNorte._id
+        provincia: 'Santa Fe'
       }
     ]);
 
@@ -155,14 +145,50 @@ const seedData = async () => {
     const locRincon = localidadesCreadas.find((l) => l.nombre === 'Rincón');
     const locRecreo = localidadesCreadas.find((l) => l.nombre === 'Recreo');
 
-    // 8. Creación de Clientes (6)
+    // 7. Creación de Zonas pertenecientes a cada localidad (Jerarquía: Localidad -> Zona)
+    console.log('Creando zonas de reparto por localidad...');
+    const zonasCreadas = await Zone.insertMany([
+      {
+        nombre: 'Zona Centro y Puerto',
+        localidad: locSantaFe._id,
+        diasDeReparto: ['Lunes', 'Miércoles', 'Viernes']
+      },
+      {
+        nombre: 'Zona Norte y Boulevard',
+        localidad: locSantaFe._id,
+        diasDeReparto: ['Martes', 'Jueves', 'Sábado']
+      },
+      {
+        nombre: 'Zona Centro',
+        localidad: locSantoTome._id,
+        diasDeReparto: ['Lunes', 'Miércoles']
+      },
+      {
+        nombre: 'Zona Ruta 1',
+        localidad: locRincon._id,
+        diasDeReparto: ['Sábado']
+      },
+      {
+        nombre: 'Zona Casco Urbano',
+        localidad: locRecreo._id,
+        diasDeReparto: ['Martes', 'Jueves']
+      }
+    ]);
+
+    const zonaCentroSantaFe = zonasCreadas.find((z) => z.nombre === 'Zona Centro y Puerto');
+    const zonaNorteSantaFe = zonasCreadas.find((z) => z.nombre === 'Zona Norte y Boulevard');
+    const zonaSantoTome = zonasCreadas.find((z) => z.nombre === 'Zona Centro');
+    const zonaRincon = zonasCreadas.find((z) => z.nombre === 'Zona Ruta 1');
+    const zonaRecreo = zonasCreadas.find((z) => z.nombre === 'Zona Casco Urbano');
+
+    // 8. Creación de Clientes asociados a su Zona (Jerarquía: Zona -> Cliente)
     console.log('Creando clientes de ejemplo...');
     await Client.insertMany([
       {
         nombre: 'Consultorio Médico San Jerónimo',
         telefono: '342-4521890',
         direccion: 'San Jerónimo 2840',
-        localidad: locSantaFe._id,
+        zona: zonaCentroSantaFe._id,
         envasesEnPoder: 4,
         saldo: 0,
         activo: true,
@@ -172,7 +198,7 @@ const seedData = async () => {
         nombre: 'Gimnasio Fitness Vital',
         telefono: '342-4889100',
         direccion: 'Urquiza 3150',
-        localidad: locSantaFe._id,
+        zona: zonaNorteSantaFe._id,
         envasesEnPoder: 8,
         saldo: -8400,
         activo: true,
@@ -182,7 +208,7 @@ const seedData = async () => {
         nombre: 'Familia Rossi',
         telefono: '342-5123456',
         direccion: 'Av. 7 de Marzo 1420',
-        localidad: locSantoTome._id,
+        zona: zonaSantoTome._id,
         envasesEnPoder: 2,
         saldo: 0,
         activo: true,
@@ -192,7 +218,7 @@ const seedData = async () => {
         nombre: 'Estudio Contable Méndez & Asoc.',
         telefono: '342-4987654',
         direccion: 'Centenario 2110',
-        localidad: locSantoTome._id,
+        zona: zonaSantoTome._id,
         envasesEnPoder: 3,
         saldo: 4200,
         activo: true,
@@ -202,7 +228,7 @@ const seedData = async () => {
         nombre: 'Complejo Turístico Los Sauces',
         telefono: '342-6311223',
         direccion: 'Ruta 1 Km 5.5',
-        localidad: locRincon._id,
+        zona: zonaRincon._id,
         envasesEnPoder: 6,
         saldo: 0,
         activo: true,
@@ -212,7 +238,7 @@ const seedData = async () => {
         nombre: 'Panadería La Espiga Dorada',
         telefono: '342-4912388',
         direccion: 'Av. Bartolomé Mitre 840',
-        localidad: locRecreo._id,
+        zona: zonaRecreo._id,
         envasesEnPoder: 0,
         saldo: 0,
         activo: false,

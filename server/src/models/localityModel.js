@@ -11,12 +11,6 @@ const localitySchema = new mongoose.Schema(
       type: String,
       default: 'Santa Fe',
       trim: true
-    },
-    zona: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Zone',
-      required: [true, 'La zona es requerida'],
-      index: true
     }
   },
   {

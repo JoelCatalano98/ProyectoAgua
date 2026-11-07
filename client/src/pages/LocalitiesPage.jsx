@@ -1,35 +1,22 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import EntityCrud from '../components/EntityCrud';
-import { useFetch } from '../hooks/useFetch';
 
 const LocalitiesPage = () => {
-  const { data: zonesData, error: zonesError } = useFetch('/zones', [], []);
-  const zones = Array.isArray(zonesData) ? zonesData : [];
-
   const columns = [
     {
       key: 'nombre',
       label: 'Localidad / Ciudad',
+      width: '50%',
       render: (row) => <strong>{row.nombre}</strong>
     },
     {
       key: 'provincia',
       label: 'Provincia',
+      width: '35%',
       render: (row) => row.provincia || 'Santa Fe'
-    },
-    {
-      key: 'zona',
-      label: 'Zona Asignada',
-      render: (row) =>
-        row.zona?.nombre ? (
-          <span className="badge badge-primary">{row.zona.nombre}</span>
-        ) : (
-          <span style={{ color: 'var(--text-muted)' }}>Sin zona</span>
-        )
     }
   ];
-
-  const zoneOptions = zones.map((z) => ({ value: z._id, label: z.nombre }));
 
   const fields = [
     {
@@ -45,48 +32,27 @@ const LocalitiesPage = () => {
       type: 'text',
       required: true,
       placeholder: 'Santa Fe'
-    },
-    {
-      name: 'zona',
-      label: 'Zona Logística',
-      type: 'select',
-      required: true,
-      placeholder: 'Seleccione una zona...',
-      options: zoneOptions
-    }
-  ];
-
-  const filters = [
-    {
-      name: 'zona',
-      label: 'Filtrar por Zona',
-      placeholder: 'Todas las zonas',
-      options: zoneOptions
     }
   ];
 
   return (
-    <div>
-      {zonesError && (
-        <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>
-          <span>⚠️</span>
-          <div>Error al cargar zonas: {zonesError}</div>
-        </div>
+    <EntityCrud
+      title="Localidades"
+      subtitle="Ciudades y localidades integradas en los recorridos"
+      endpoint="/localities"
+      columns={columns}
+      fields={fields}
+      initialFormValues={{ nombre: '', provincia: 'Santa Fe' }}
+      extraRowActions={(locality) => (
+        <Link
+          to={`/hoja-de-ruta?localidad=${locality._id}`}
+          className="btn btn-secondary btn-sm"
+          title="Ver Hoja de Ruta de esta localidad"
+        >
+          🚚 Hoja
+        </Link>
       )}
-      <EntityCrud
-        title="Localidades"
-        subtitle="Ciudades y localidades integradas en los recorridos"
-        endpoint="/localities"
-        columns={columns}
-        fields={fields}
-        filters={filters}
-        initialFormValues={{ nombre: '', provincia: 'Santa Fe', zona: '' }}
-        onTransformInitial={(item) => ({
-          ...item,
-          zona: item.zona?._id || item.zona || ''
-        })}
-      />
-    </div>
+    />
   );
 };
 
