@@ -555,19 +555,22 @@ textarea.form-control {
 }
 
 /* Tables Responsive (Transform into cards on mobile) */
-.table-container {
+.table-container,
+.table-responsive {
   width: 100%;
   overflow-x: auto;
 }
 
-.data-table {
+.data-table,
+.table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.925rem;
 }
 
-.data-table th {
+.data-table th,
+.table th {
   background-color: #f8fafc;
   padding: 0.875rem 1rem;
   font-weight: 600;
@@ -576,13 +579,15 @@ textarea.form-control {
   white-space: nowrap;
 }
 
-.data-table td {
+.data-table td,
+.table td {
   padding: 0.875rem 1rem;
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
 }
 
-.data-table tr:hover {
+.data-table tr:hover,
+.table tr:hover {
   background-color: #f8fafc;
 }
 

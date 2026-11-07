@@ -327,8 +327,8 @@ const EntityCrud = ({
             </p>
           </div>
         ) : (
-          <div className="table-responsive">
-            <table className="table">
+          <div className="table-container">
+            <table className="data-table">
               <thead>
                 <tr>
                   {columns.map((col) => (
@@ -336,7 +336,7 @@ const EntityCrud = ({
                       {col.label}
                     </th>
                   ))}
-                  <th style={{ width: '120px', textAlign: 'right' }}>Acciones</th>
+                  <th style={{ width: '140px', textAlign: 'right' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -348,7 +348,7 @@ const EntityCrud = ({
                       </td>
                     ))}
                     <td data-label="Acciones">
-                      <div className="table-actions">
+                      <div className="table-actions" style={{ justifyContent: 'flex-end' }}>
                         {extraRowActions && extraRowActions(item)}
                         <button
                           className="btn btn-secondary btn-sm"

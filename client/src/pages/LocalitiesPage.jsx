@@ -7,11 +7,13 @@ const LocalitiesPage = () => {
     {
       key: 'nombre',
       label: 'Localidad / Ciudad',
+      width: '50%',
       render: (row) => <strong>{row.nombre}</strong>
     },
     {
       key: 'provincia',
       label: 'Provincia',
+      width: '35%',
       render: (row) => row.provincia || 'Santa Fe'
     }
   ];
