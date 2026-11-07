@@ -33,9 +33,31 @@ const getMongoTarget = (uri) => {
   }
 };
 
+const validateSeedConfig = ({
+  uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/distribuidora_agua',
+  seedConfirm = process.env.SEED_CONFIRM
+} = {}) => {
+  const { host, dbName, isRemote } = getMongoTarget(uri);
+
+  if (dbName.endsWith('_test')) {
+    throw new Error(`ABORTADO POR SEGURIDAD: El seed de desarrollo no debe ejecutarse sobre la base de tests ('${dbName}').`);
+  }
+
+  if (isRemote && seedConfirm !== 'yes') {
+    throw new Error(
+      'ABORTADO POR SEGURIDAD: Se detectó una base de datos remota (MongoDB Atlas). Para ejecutar el seed en este entorno, es obligatorio confirmar la operación definiendo la variable de entorno SEED_CONFIRM=yes (ejemplo: SEED_CONFIRM=yes npm run seed).'
+    );
+  }
+
+  return { host, dbName, isRemote };
+};
+
 const seedData = async () => {
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/distribuidora_agua';
-  const { host, dbName, isRemote } = getMongoTarget(uri);
+  const { host, dbName, isRemote } = validateSeedConfig({
+    uri,
+    seedConfirm: process.env.SEED_CONFIRM
+  });
 
   console.log('=== INICIO DEL SEED DE BASE DE DATOS ===');
   console.log(`Destino: Host: ${host} | Base de datos: ${dbName || '(por defecto)'}`);
@@ -46,14 +68,6 @@ const seedData = async () => {
   console.log('  - Poblado de catálogo: 3 categorías y 5 productos.');
   console.log('  - Poblado logístico: 4 localidades y 5 zonas de reparto.');
   console.log('  - Alta de 6 clientes asociados a zonas.');
-
-  // Protección de seguridad
-  if (isRemote) {
-    throw new Error('ABORTADO POR SEGURIDAD: No se puede ejecutar el seed sobre MongoDB Atlas / producción.');
-  }
-  if (dbName.endsWith('_test')) {
-    throw new Error(`ABORTADO POR SEGURIDAD: El seed de desarrollo no debe ejecutarse sobre la base de tests ('${dbName}').`);
-  }
 
   try {
     console.log(`Conectando a MongoDB en host ${host} (base: ${dbName || 'default'})...`);
@@ -296,6 +310,8 @@ if (require.main === module) {
 }
 
 seedData.getMongoTarget = getMongoTarget;
+seedData.validateSeedConfig = validateSeedConfig;
 module.exports = seedData;
 module.exports.seedData = seedData;
 module.exports.getMongoTarget = getMongoTarget;
+module.exports.validateSeedConfig = validateSeedConfig;

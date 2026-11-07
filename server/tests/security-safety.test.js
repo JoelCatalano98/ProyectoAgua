@@ -1,5 +1,6 @@
 const { validateTestDatabase } = require('./helpers/dbHelper');
 const { validateEnv } = require('../src/config/envValidator');
+const { validateSeedConfig, getMongoTarget } = require('../src/utils/seed');
 
 describe('Seguridad de Entorno de Pruebas (Protección de Base de Datos)', () => {
   it('debe abortar con error si la URI es de MongoDB Atlas (mongodb+srv)', () => {
@@ -78,6 +79,48 @@ describe('Validación de JWT_SECRET en Entorno de Producción y Desarrollo', () 
         NODE_ENV: 'test',
         JWT_SECRET: 'test_secret'
       });
+    }).not.toThrow();
+  });
+});
+
+describe('Protección del Seed para Bases de Datos Remotas (MongoDB Atlas) y Locales', () => {
+  const atlasUri = 'mongodb+srv://admin:miSuperPassword@cluster0.abcde.mongodb.net/distribuidora_agua?retryWrites=true&w=majority';
+  const localUri = 'mongodb://127.0.0.1:27017/distribuidora_agua';
+
+  it('debe extraer host y dbName sin exponer credenciales de la URI', () => {
+    const target = getMongoTarget(atlasUri);
+    expect(target.host).toBe('cluster0.abcde.mongodb.net');
+    expect(target.dbName).toBe('distribuidora_agua');
+    expect(target.isRemote).toBe(true);
+    expect(JSON.stringify(target)).not.toContain('admin');
+    expect(JSON.stringify(target)).not.toContain('miSuperPassword');
+  });
+
+  it('debe abortar con error claro si la URI es remota (Atlas) y SEED_CONFIRM no es "yes"', () => {
+    expect(() => {
+      validateSeedConfig({ uri: atlasUri, seedConfirm: undefined });
+    }).toThrow(/SEED_CONFIRM=yes/i);
+
+    expect(() => {
+      validateSeedConfig({ uri: atlasUri, seedConfirm: 'no' });
+    }).toThrow(/SEED_CONFIRM=yes/i);
+  });
+
+  it('debe permitir la ejecución en base local sin requerir SEED_CONFIRM', () => {
+    expect(() => {
+      validateSeedConfig({ uri: localUri, seedConfirm: undefined });
+    }).not.toThrow();
+  });
+
+  it('debe abortar si el nombre de la base de datos termina en _test', () => {
+    expect(() => {
+      validateSeedConfig({ uri: 'mongodb://127.0.0.1:27017/distribuidora_agua_test' });
+    }).toThrow(/base de tests/i);
+  });
+
+  it('debe permitir la ejecución sobre Atlas cuando SEED_CONFIRM="yes"', () => {
+    expect(() => {
+      validateSeedConfig({ uri: atlasUri, seedConfirm: 'yes' });
     }).not.toThrow();
   });
 });
