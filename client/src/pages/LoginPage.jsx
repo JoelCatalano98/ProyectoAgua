@@ -96,16 +96,6 @@ const LoginPage = () => {
     }
   };
 
-  const handleFillDemo = () => {
-    setValues({
-      email: 'admin@aguapura.com',
-      password: 'admin1234'
-    });
-    setFieldErrors({});
-    setError('');
-    setIsRateLimited(false);
-    setNetworkError(false);
-  };
 
   return (
     <div className="login-wrapper">
@@ -187,16 +177,27 @@ const LoginPage = () => {
           </button>
         </form>
 
-        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-          <button
-            type="button"
-            onClick={handleFillDemo}
-            className="btn btn-secondary btn-sm"
-            style={{ fontSize: '0.8rem' }}
-          >
-            Cargar credenciales de prueba (admin)
-          </button>
-        </div>
+        {import.meta.env.DEV && (
+          <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setValues({
+                  email: 'admin@aguapura.com',
+                  password: 'admin1234'
+                });
+                setFieldErrors({});
+                setError('');
+                setIsRateLimited(false);
+                setNetworkError(false);
+              }}
+              className="btn btn-secondary btn-sm"
+              style={{ fontSize: '0.8rem' }}
+            >
+              Cargar credenciales de prueba (admin)
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
