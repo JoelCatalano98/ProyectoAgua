@@ -8,15 +8,17 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: [
-        'favicon.svg',
+        'favicon.ico',
+        'favicon-32x32.png',
+        'favicon-16x16.png',
         'apple-touch-icon.png',
         'pwa-192x192.png',
         'pwa-512x512.png'
       ],
       manifest: {
-        name: 'Proyecto Agua - Gestión de Reparto',
-        short_name: 'Proyecto Agua',
-        description: 'Sistema de distribución y hojas de ruta de agua',
+        name: 'RENDIX',
+        short_name: 'RENDIX',
+        description: 'RENDIX - Sistema de gestión y logística de reparto',
         theme_color: '#0284c7',
         background_color: '#ffffff',
         display: 'standalone',
