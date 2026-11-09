@@ -14,6 +14,21 @@ Sistema integral de gestión comercial y logística para distribuidoras de agua 
 
 ---
 
+## Índice
+
+- [Demo en línea](#demo-en-línea)
+- [Cómo correr el proyecto](#cómo-correr-el-proyecto)
+- [Cumplimiento de la consigna](#cumplimiento-de-la-consigna)
+- [Esquema de la base de datos](#esquema-de-la-base-de-datos)
+- [Tecnologías utilizadas](#tecnologías-utilizadas)
+- [Listado completo de endpoints](#listado-completo-de-endpoints)
+- [Ejemplos de datos mock en JSON para solicitudes y respuestas](#ejemplos-de-datos-mock-en-json-para-solicitudes-y-respuestas)
+- [Funcionalidades implementadas y a futuro](#funcionalidades-implementadas-y-a-futuro)
+- [Estructura del Repositorio](#estructura-del-repositorio)
+- [Despliegue en Vercel](#despliegue-en-vercel)
+
+---
+
 ## Cómo correr el proyecto
 
 Cada parte (`server/` para el backend y `client/` para el frontend) es un proyecto independiente y se ejecuta por separado.
@@ -70,17 +85,17 @@ npm test
 | Requisito | Dónde está (archivo o carpeta) |
 |---|---|
 | Node.js + Express + MongoDB (Mongoose) | Todo el backend (`server/`) |
-| **Productos**: nombre, descripción, precio, stock y categoría (referencia) | `server/src/models/productModel.js` |
-| **Productos**: operaciones CRUD completas (`GET`, `POST`, `PUT`, `DELETE` y `PATCH`) | `server/src/routes/productRoute.js` |
-| **Categorías**: nombre y descripción; operaciones `GET`, `POST`, `PUT` y `DELETE` | `server/src/models/categoryModel.js`, `server/src/routes/categoryRoute.js` |
+| **Productos**: nombre, descripción, precio, stock y categoría (referencia) | `server/src/models/productModel.js` (ver [Colección `products`](#colección-products)) |
+| **Productos**: operaciones CRUD completas (`GET`, `POST`, `PUT`, `DELETE` y `PATCH`) | `server/src/routes/productRoute.js` (ver [Productos](#productos)) |
+| **Categorías**: nombre y descripción; operaciones `GET`, `POST`, `PUT` y `DELETE` | `server/src/models/categoryModel.js`, `server/src/routes/categoryRoute.js` (ver [Categorías](#categorías)) |
 | **Capa de servicios**: lógica de negocio y consultas Mongoose aisladas de los controladores | `server/src/services/` |
 | **Controladores ligeros**: procesamiento de `req`, delegación al servicio y armado de `res` | `server/src/controllers/` |
-| **Relación y `populate`**: Producto → Categoría en lecturas (`GET`) y mutaciones (`POST`, `PUT`) | `server/src/models/productModel.js`, `server/src/services/productService.js` |
-| **Códigos HTTP y manejo de errores**: respuestas estándar (200, 201, 400, 401, 403, 404, 409, 500) | `server/src/middleware/errorHandler.js`, `server/src/controllers/` |
+| **Relación y `populate`**: Producto → Categoría en lecturas (`GET`) y mutaciones (`POST`, `PUT`) | `server/src/models/productModel.js`, `server/src/services/productService.js` (ver [Relaciones entre entidades](#relaciones-entre-entidades)) |
+| **Códigos HTTP y manejo de errores**: respuestas estándar (200, 201, 400, 401, 403, 404, 409, 500) | `server/src/middleware/errorHandler.js`, `server/src/controllers/` (ver [Tabla de Códigos HTTP](#tabla-de-códigos-http-de-respuesta)) |
 | **Variables de entorno (`dotenv`)**: URI de MongoDB y `JWT_SECRET` sin valores sensibles hardcodeados | `server/app.js`, `server/.env`, `server/.env.example` |
 | **CORS**: habilitado en la aplicación principal | `server/app.js` |
-| **Estructura modular de directorios**: separación en `models/`, `services/`, `controllers/`, `routes/`, `middleware/`, `config/` | Carpeta `server/` |
-| **Usuarios y seguridad**: modelo de usuario, `bcrypt` en *pre-save hook*, JWT y middleware `verifyToken` | `server/src/models/userModel.js`, `server/src/middleware/verifyToken.js` |
+| **Estructura modular de directorios**: separación en `models/`, `services/`, `controllers/`, `routes/`, `middleware/`, `config/` | Carpeta `server/` (ver [Estructura del Repositorio](#estructura-del-repositorio)) |
+| **Usuarios y seguridad**: modelo de usuario, `bcrypt` en *pre-save hook*, JWT y middleware `verifyToken` | `server/src/models/userModel.js`, `server/src/middleware/verifyToken.js` (ver [Autenticación y Usuarios](#autenticación-y-usuarios)) |
 
 **Extensiones y características adicionales:**  
 Más allá de los requisitos básicos, el sistema incorpora un panel web completo en React (`client/`), ampliación del dominio con las entidades Localidades, Zonas y Clientes con jerarquía logística y generación de hoja de ruta de reparto imprimible (`server/src/services/localityService.js`), validaciones rigurosas de esquemas con Zod en todas las entradas, control de acceso basado en roles (`admin` y `repartidor`), limitación de tasa de peticiones en login con `express-rate-limit` contra fuerza bruta, y una suite de tests con Jest y Supertest cubriendo endpoints, seguridad y reglas de negocio.
