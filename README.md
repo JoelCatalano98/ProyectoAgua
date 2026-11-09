@@ -1240,20 +1240,20 @@ Todas las respuestas de error de la API utilizan una estructura unificada y pred
 El repositorio está organizado en dos partes claramente separadas e independientes: `server/` (backend) y `client/` (frontend).
 
 > [!NOTE]
-> **Estructura pedida por la consigna:** La carpeta `server/` contiene la estructura modular de directorios (`app.js`, `.env`, `.env.example`, `package.json`, `src/config/`, `src/controllers/`, `src/middleware/`, `src/models/`, `src/routes/`, `src/services/`, `src/utils/`) requerida por la consigna del TP. La carpeta `client/` contiene el desarrollo del frontend opcional como Single Page Application (SPA). En la raíz se incluye un `package.json` de conveniencia con scripts delegados (`npm test`, `npm run seed`) para facilitar la ejecución y evaluación directa desde la raíz del repositorio.
+> **Estructura pedida por la consigna:** La carpeta `server/` contiene la estructura modular de directorios (`app.js`, `.env.example`, `package.json`, `src/config/`, `src/controllers/`, `src/middleware/`, `src/models/`, `src/routes/`, `src/services/`, `src/utils/`) requerida por la consigna del TP. La carpeta `client/` contiene el desarrollo del frontend opcional como Single Page Application (SPA). En la raíz se incluye un `package.json` de conveniencia con scripts delegados (`npm start`, `npm test`, `npm run seed`) para facilitar la ejecución y evaluación directa desde la raíz del repositorio.
 
 ```
-distribuidora-agua/
+ProyectoAgua/
 ├── .gitignore
-├── package.json             (scripts de conveniencia: npm test, npm run seed)
+├── package.json             (scripts de conveniencia: npm start, npm test, npm run seed)
 ├── README.md
 ├── server/
 │   ├── app.js                   (punto de entrada del servidor Express)
 │   ├── jest.config.js           (configuración de entorno de pruebas Jest)
 │   ├── vercel.json              (configuración de reescritura para serverless)
-│   ├── .env                     (valores de ejemplo / placeholders para entrega)
+│   ├── .env                     (se entrega por el campus, ignorado por Git)
 │   ├── .env.example             (plantilla de variables con valores de ejemplo)
-│   ├── .gitignore               (ignora node_modules/, logs y .env.local)
+│   ├── .gitignore               (ignora node_modules/, dist/, logs, .env y backups/)
 │   ├── package.json             (scripts y dependencias del backend)
 │   ├── package-lock.json
 │   ├── api/
