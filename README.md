@@ -251,7 +251,7 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
 | `401 Unauthorized` | Fallo de autenticación | Token ausente, token expirado, token alterado o credenciales de login incorrectas |
 | `403 Forbidden` | Permisos insuficientes | Token válido pero rol no autorizado (ej: repartidor accediendo a endpoints exclusivos de admin) |
 | `404 Not Found` | Recurso o ruta no encontrada | Documento inexistente o ruta/endpoint no mapeado |
-| `409 Conflict` | Conflicto con el estado actual del recurso | Recurso duplicado por clave única (nombre de categoría/zona, email) o bloqueo por regla de negocio al intentar eliminar un registro con dependencias (categoría con productos, zona con localidades, localidad con clientes) |
+| `409 Conflict` | Conflicto con el estado actual del recurso | Recurso duplicado por clave única (nombre de categoría/zona, email) o bloqueo por regla de negocio al intentar eliminar un registro con dependencias (categoría con productos, localidad con zonas, zona con clientes) |
 | `429 Too Many Requests` | Límite de peticiones excedido | Exceso de intentos fallidos de autenticación en login (rate limiting por IP) |
 | `500 Internal Error` | Error de servidor no controlado | Fallo inesperado capturado por el middleware global (oculta trazas al cliente) |
 
