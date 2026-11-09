@@ -12,7 +12,7 @@ export const setUnauthorizedHandler = (handler) => {
 
 /**
  * Cliente HTTP unificado para la API REST.
- * Adjunta token de localStorage y maneja respuestas 401 via callback registrado.
+ * Adjunta token de sessionStorage y maneja respuestas 401 via callback registrado.
  */
 async function request(endpoint, options = {}) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
@@ -28,7 +28,7 @@ async function request(endpoint, options = {}) {
     });
   }
 
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -46,10 +46,12 @@ async function request(endpoint, options = {}) {
 
     // Manejo de token expirado o no autorizado (401)
     if (res.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
       if (typeof unauthorizedHandler === 'function') {
         unauthorizedHandler();
+      } else if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
       }
     }
 
