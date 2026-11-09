@@ -301,6 +301,18 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
 
 ## Ejemplos de datos mock en JSON para solicitudes y respuestas
 
+### Ruta Base y Estado de la API
+
+#### GET `/` y `/api`
+- **Response `200 OK`:**
+  ```json
+  {
+    "status": "success",
+    "message": "API RESTful Distribuidora de Agua - Proyecto Final UTN BA",
+    "version": "1.0.0"
+  }
+  ```
+
 ### Autenticación y Usuarios
 
 #### POST `/api/users/login`
@@ -527,6 +539,15 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
   }
   ```
 
+#### DELETE `/api/users/:id` 🔒 (Requiere Header: `Authorization: Bearer <TOKEN_ADMIN>`)
+- **Response `200 OK`:**
+  ```json
+  {
+    "ok": true,
+    "message": "Usuario eliminado exitosamente"
+  }
+  ```
+
 ### Categorías
 
 #### GET `/api/categories`
@@ -541,6 +562,18 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
       "updatedAt": "2026-10-27T23:00:00.000Z"
     }
   ]
+  ```
+
+#### GET `/api/categories/:id`
+- **Response `200 OK`:**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf111",
+    "nombre": "Bidones",
+    "descripcion": "Envases retornables y descartables de agua purificada de máxima calidad",
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:00:00.000Z"
+  }
   ```
 
 #### POST `/api/categories` (Requiere Header: `Authorization: Bearer <token>`)
@@ -581,7 +614,14 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
   }
   ```
 
-#### DELETE `/api/categories/:id`
+#### DELETE `/api/categories/:id` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
+- **Response `200 OK` (Eliminación exitosa sin productos asociados):**
+  ```json
+  {
+    "message": "Categoría eliminada correctamente",
+    "id": "67be89b52044b7d1420cf112"
+  }
+  ```
 - **Response `409 Conflict` (Violación de regla de negocio: tiene productos asociados):**
   ```json
   {
@@ -591,6 +631,46 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
   ```
 
 ### Productos
+
+#### GET `/api/products` (Admite filtro `?categoria=<id>`)
+- **Response `200 OK` (Listado con categoría poblada):**
+  ```json
+  [
+    {
+      "_id": "67be89b52044b7d1420cf222",
+      "nombre": "Bidón 20 Litros Retornable",
+      "descripcion": "Agua purificada baja en sodio en envase de policarbonato",
+      "precio": 4200,
+      "stock": 450,
+      "categoria": {
+        "_id": "67be89b52044b7d1420cf111",
+        "nombre": "Bidones",
+        "descripcion": "Envases retornables y descartables"
+      },
+      "createdAt": "2026-10-27T23:00:00.000Z",
+      "updatedAt": "2026-10-27T23:00:00.000Z"
+    }
+  ]
+  ```
+
+#### GET `/api/products/:id`
+- **Response `200 OK` (Detalle con categoría poblada):**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf222",
+    "nombre": "Bidón 20 Litros Retornable",
+    "descripcion": "Agua purificada baja en sodio en envase de policarbonato",
+    "precio": 4200,
+    "stock": 450,
+    "categoria": {
+      "_id": "67be89b52044b7d1420cf111",
+      "nombre": "Bidones",
+      "descripcion": "Envases retornables y descartables"
+    },
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:00:00.000Z"
+  }
+  ```
 
 #### POST `/api/products` (Requiere Header: `Authorization: Bearer <token>`)
 - **Request:**
@@ -682,7 +762,30 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
   }
   ```
 
+#### DELETE `/api/products/:id` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
+- **Response `200 OK`:**
+  ```json
+  {
+    "message": "Producto eliminado correctamente",
+    "id": "67be89b52044b7d1420cf222"
+  }
+  ```
+
 ### Localidades
+
+#### GET `/api/localities`
+- **Response `200 OK`:**
+  ```json
+  [
+    {
+      "_id": "67be89b52044b7d1420cf444",
+      "nombre": "Santa Fe Capital",
+      "provincia": "Santa Fe",
+      "createdAt": "2026-10-27T23:00:00.000Z",
+      "updatedAt": "2026-10-27T23:00:00.000Z"
+    }
+  ]
+  ```
 
 #### POST `/api/localities` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
 - **Request:**
@@ -722,7 +825,42 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
   }
   ```
 
+#### DELETE `/api/localities/:id` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
+- **Response `200 OK` (Eliminación exitosa sin zonas asociadas):**
+  ```json
+  {
+    "message": "Localidad eliminada correctamente",
+    "id": "67be89b52044b7d1420cf445"
+  }
+  ```
+- **Response `409 Conflict` (Violación de regla de negocio: tiene zonas asociadas):**
+  ```json
+  {
+    "ok": false,
+    "message": "No se puede eliminar la localidad porque tiene 1 zona asociada"
+  }
+  ```
+
 ### Zonas de Reparto
+
+#### GET `/api/zones` (Admite filtro `?localidad=<id>`)
+- **Response `200 OK` (Listado con localidad poblada):**
+  ```json
+  [
+    {
+      "_id": "67be89b52044b7d1420cf334",
+      "nombre": "Zona Costanera y 7 Jefes",
+      "diasDeReparto": ["Martes", "Jueves"],
+      "localidad": {
+        "_id": "67be89b52044b7d1420cf444",
+        "nombre": "Santa Fe Capital",
+        "provincia": "Santa Fe"
+      },
+      "createdAt": "2026-10-27T23:00:00.000Z",
+      "updatedAt": "2026-10-27T23:00:00.000Z"
+    }
+  ]
+  ```
 
 #### POST `/api/zones` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
 - **Request (Valida existencia de la localidad y días de reparto permitidos):**
@@ -773,6 +911,22 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
   }
   ```
 
+#### DELETE `/api/zones/:id` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
+- **Response `200 OK` (Eliminación exitosa sin clientes asociados):**
+  ```json
+  {
+    "message": "Zona eliminada correctamente",
+    "id": "67be89b52044b7d1420cf334"
+  }
+  ```
+- **Response `409 Conflict` (Violación de regla de negocio: tiene clientes asociados):**
+  ```json
+  {
+    "ok": false,
+    "message": "No se puede eliminar la zona porque tiene 1 cliente asociado"
+  }
+  ```
+
 ### Clientes y Populate Anidado
 
 #### GET `/api/clients?localidad=67be89b52044b7d1420cf444&activo=true`
@@ -802,6 +956,33 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
       "updatedAt": "2026-10-27T23:00:00.000Z"
     }
   ]
+  ```
+
+#### GET `/api/clients/:id`
+- **Response `200 OK` (Detalle con zona y localidad anidada pobladas):**
+  ```json
+  {
+    "_id": "67be89b52044b7d1420cf555",
+    "nombre": "Consultorio Médico San Jerónimo",
+    "telefono": "342-4521890",
+    "direccion": "San Jerónimo 2840",
+    "envasesEnPoder": 4,
+    "saldo": 0,
+    "activo": true,
+    "observaciones": "Entregar de 8 a 12 hs",
+    "zona": {
+      "_id": "67be89b52044b7d1420cf333",
+      "nombre": "Zona Centro y Puerto",
+      "diasDeReparto": ["Lunes", "Miércoles", "Viernes"],
+      "localidad": {
+        "_id": "67be89b52044b7d1420cf444",
+        "nombre": "Santa Fe Capital",
+        "provincia": "Santa Fe"
+      }
+    },
+    "createdAt": "2026-10-27T23:00:00.000Z",
+    "updatedAt": "2026-10-27T23:00:00.000Z"
+  }
   ```
 
 #### POST `/api/clients` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
@@ -880,6 +1061,15 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
     },
     "createdAt": "2026-10-27T23:00:00.000Z",
     "updatedAt": "2026-10-27T23:20:00.000Z"
+  }
+  ```
+
+#### DELETE `/api/clients/:id` 🔒 (Requiere Header: `Authorization: Bearer <token>`)
+- **Response `200 OK`:**
+  ```json
+  {
+    "message": "Cliente eliminado correctamente",
+    "id": "67be89b52044b7d1420cf556"
   }
   ```
 
