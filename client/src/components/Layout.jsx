@@ -26,7 +26,6 @@ const Layout = () => {
       {/* Barra lateral */}
       <aside className={`sidebar ${mobileMenu.isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <span className="brand-icon">💧</span>
           <span className="brand-title">
             {settingsLoading ? '\u00A0' : (nombreEmpresa || 'Panel')}
           </span>

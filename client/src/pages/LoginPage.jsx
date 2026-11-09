@@ -101,7 +101,6 @@ const LoginPage = () => {
     <div className="login-wrapper">
       <div className="login-card">
         <div className="login-header">
-          <div className="login-logo">💧</div>
           <h2>{settingsLoading ? '\u00A0' : (nombreEmpresa || 'Panel de Gestión')}</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
             Panel de Administración y Reparto
