@@ -1154,14 +1154,14 @@ El proyecto está configurado para desplegarse en **Vercel** como dos proyectos 
 #### 1. Desplegar el Backend primero (`server/`)
 1. En el panel de control de Vercel, hacer clic en **"Add New..."** > **"Project"** e importar este repositorio.
 2. Configurar los parámetros del proyecto:
-   - **Project Name:** `distribuidora-agua-api` (o el nombre preferido para la API).
+   - **Project Name:** `proyecto-agua` (o el nombre preferido para la API).
    - **Framework Preset:** `Other` (Node.js / Express Serverless).
    - **Root Directory:** Hacer clic en *Edit* y seleccionar la carpeta `server`.
    - **Build and Output Settings:** Dejar las opciones por defecto (Build Command y Output Directory vacíos).
 3. En la sección **Environment Variables**, agregar las siguientes variables:
    | Variable | Valor de Ejemplo / Producción | Descripción |
    |---|---|---|
-   | `MONGODB_URI` | `mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority` | Cadena de conexión al clúster de MongoDB Atlas |
+   | `MONGODB_URI` | `mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority` | Cadena de conexión al clúster de MongoDB Atlas (debe incluir el nombre de la base de datos) |
    | `JWT_SECRET` | `<generá-un-secreto-aleatorio>` | **Obligatoria:** Clave secreta robusta para firma de tokens JWT (sin fallback; el backend aborta si falta o si en producción tiene menos de 32 caracteres) |
    | `JWT_EXPIRES_IN` | `2h` | Tiempo de vida del token antes de expirar |
 
@@ -1173,31 +1173,32 @@ El proyecto está configurado para desplegarse en **Vercel** como dos proyectos 
    > ```
    *(Nota: la variable `CLIENT_URL` se completará en el paso 3 una vez conocido el dominio del frontend).*
 4. Hacer clic en **"Deploy"**.
-5. Al finalizar, Vercel asignará la URL pública del backend, por ejemplo:
-   `https://distribuidora-agua-api.vercel.app`
+5. Al finalizar, Vercel asignará la URL pública del backend:
+   `https://proyecto-agua-three.vercel.app`
 
 #### 2. Desplegar el Frontend (`client/`)
 1. En Vercel, hacer clic nuevamente en **"Add New..."** > **"Project"** e importar el mismo repositorio.
 2. Configurar los parámetros del proyecto:
-   - **Project Name:** `distribuidora-agua-client` (o el nombre preferido para la web).
+   - **Project Name:** `my-crm-utn` (o el nombre preferido para la web).
    - **Framework Preset:** `Vite` (detectado automáticamente).
    - **Root Directory:** Hacer clic en *Edit* y seleccionar la carpeta `client`.
    - **Build Command:** `npm run build`
    - **Output Directory:** `dist`
 3. En la sección **Environment Variables**, agregar:
-   | Variable | Valor de Ejemplo / Producción | Descripción |
+   | Variable | Valor de Producción | Descripción |
    |---|---|---|
-   | `VITE_API_URL` | `https://distribuidora-agua-api.vercel.app/api` | URL pública de la API desplegada en el paso 1 (con `/api` y **sin** barra final) |
+   | `VITE_API_URL` | `https://proyecto-agua-three.vercel.app/api` | URL pública de la API desplegada en el paso 1 (con `/api` y **sin** barra final) |
 4. Hacer clic en **"Deploy"**.
-5. Al finalizar, Vercel asignará la URL pública del frontend, por ejemplo:
-   `https://distribuidora-agua-client.vercel.app`
+5. Al finalizar, Vercel asignará la URL pública del frontend:
+   `https://my-crm-utn.vercel.app`
 
 #### 3. Configurar `CLIENT_URL` en el Backend y Redeploy
 Para habilitar la protección CORS en producción y admitir peticiones legítimas del frontend:
-1. Ir al proyecto del backend en Vercel (`distribuidora-agua-api`) > **Settings** > **Environment Variables**.
+1. Ir al proyecto del backend en Vercel > **Settings** > **Environment Variables**.
 2. Crear o editar la variable:
    - **Key:** `CLIENT_URL`
-   - **Value:** `https://distribuidora-agua-client.vercel.app` *(admite múltiples dominios separados por coma si se requiere)*.
+   - **Value:** `https://my-crm-utn.vercel.app`
+   > `CLIENT_URL` admite varios dominios separados por coma (sin espacios ni barra final), por ejemplo: `https://my-crm-utn.vercel.app,http://localhost:5173`. Debe estar configurada en **Production**.
 3. Ir a la pestaña **Deployments**, hacer clic en los tres puntos (`...`) del último despliegue y seleccionar **Redeploy** para aplicar los cambios de entorno.
 
 #### 4. Poblado inicial de datos en MongoDB Atlas (Seed)
@@ -1227,10 +1228,19 @@ npm run seed
 
 ---
 
-### URLs del entorno productivo (Placeholders)
-- **API Backend:** `https://distribuidora-agua-api.vercel.app`
-- **Frontend Web:** `https://distribuidora-agua-client.vercel.app`
+### URLs del entorno productivo
+- **API Backend:** `https://proyecto-agua-three.vercel.app`
+- **Frontend Web:** `https://my-crm-utn.vercel.app`
 - **Base de Datos:** MongoDB Atlas Cluster (`mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority`)
+
+### Problemas comunes en Vercel
+
+1. **CORS:**
+   - La variable `CLIENT_URL` debe estar cargada en el entorno **Production** con el dominio fijo del frontend (`https://my-crm-utn.vercel.app`, sin espacios ni barra final). Tras configurarla, es obligatorio realizar un **Redeploy** del backend para que surta efecto.
+2. **`[]` en `/api/categories`:**
+   - La variable `MONGODB_URI` no incluye el nombre de la base de datos en la cadena de conexión (por ejemplo `mongodb+srv://.../?retryWrites=true` en vez de `mongodb+srv://.../distribuidora_agua?retryWrites=true`). Sin el nombre de la base, MongoDB conecta a `test` (que se encuentra vacía). Corregir la URI y hacer **Redeploy**.
+3. **`VITE_API_URL` debe terminar en `/api` y requiere Redeploy del frontend:**
+   - La URL de la API configurada en el cliente debe terminar con `/api` (ej. `https://proyecto-agua-three.vercel.app/api`). Como las variables de Vite se incrustan durante la compilación, cualquier ajuste exige un **Redeploy** del frontend para reconstruir el bundle.
 
 ### Usuario de prueba (cargado por el Seed)
 - **Email:** `admin@aguapura.com`
