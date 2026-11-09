@@ -2,8 +2,30 @@
 
 Sistema integral de gestión comercial y logística para distribuidoras de agua purificada envasada y dispensers, orientado a la administración de catálogos, delimitación de recorridos por localidades/zonas, cuentas corrientes de clientes y control de operadores.
 
+## Demo en línea
+
+- **Frontend:** https://my-crm-utn.vercel.app
+- **API:** https://proyecto-agua-three.vercel.app
+
+*El usuario y la contraseña del sitio desplegado se entregan por separado, y las credenciales del seed local (`admin@aguapura.com` / `admin1234`) son solo para desarrollo.*
+
 **Stack tecnológico:** Node.js, Express, MongoDB (Mongoose) y React + Vite.  
 **Autor:** Joel Catalano
+
+---
+
+## Índice
+
+- [Demo en línea](#demo-en-línea)
+- [Cómo correr el proyecto](#cómo-correr-el-proyecto)
+- [Cumplimiento de la consigna](#cumplimiento-de-la-consigna)
+- [Esquema de la base de datos](#esquema-de-la-base-de-datos)
+- [Tecnologías utilizadas](#tecnologías-utilizadas)
+- [Listado completo de endpoints](#listado-completo-de-endpoints)
+- [Ejemplos de datos mock en JSON para solicitudes y respuestas](#ejemplos-de-datos-mock-en-json-para-solicitudes-y-respuestas)
+- [Funcionalidades implementadas y a futuro](#funcionalidades-implementadas-y-a-futuro)
+- [Estructura del Repositorio](#estructura-del-repositorio)
+- [Despliegue en Vercel](#despliegue-en-vercel)
 
 ---
 
@@ -63,20 +85,20 @@ npm test
 | Requisito | Dónde está (archivo o carpeta) |
 |---|---|
 | Node.js + Express + MongoDB (Mongoose) | Todo el backend (`server/`) |
-| **Productos**: nombre, descripción, precio, stock y categoría (referencia) | `server/src/models/productModel.js` |
-| **Productos**: operaciones CRUD completas (`GET`, `POST`, `PUT`, `DELETE` y `PATCH`) | `server/src/routes/productRoute.js` |
-| **Categorías**: nombre y descripción; operaciones `GET`, `POST`, `PUT` y `DELETE` | `server/src/models/categoryModel.js`, `server/src/routes/categoryRoute.js` |
+| **Productos**: nombre, descripción, precio, stock y categoría (referencia) | `server/src/models/productModel.js` (ver [Colección `products`](#colección-products)) |
+| **Productos**: operaciones CRUD completas (`GET`, `POST`, `PUT`, `DELETE` y `PATCH`) | `server/src/routes/productRoute.js` (ver [Productos](#productos)) |
+| **Categorías**: nombre y descripción; operaciones `GET`, `POST`, `PUT` y `DELETE` | `server/src/models/categoryModel.js`, `server/src/routes/categoryRoute.js` (ver [Categorías](#categorías)) |
 | **Capa de servicios**: lógica de negocio y consultas Mongoose aisladas de los controladores | `server/src/services/` |
 | **Controladores ligeros**: procesamiento de `req`, delegación al servicio y armado de `res` | `server/src/controllers/` |
-| **Relación y `populate`**: Producto → Categoría en lecturas (`GET`) y mutaciones (`POST`, `PUT`) | `server/src/models/productModel.js`, `server/src/services/productService.js` |
-| **Códigos HTTP y manejo de errores**: respuestas estándar (200, 201, 400, 401, 403, 404, 409, 500) | `server/src/middleware/errorHandler.js`, `server/src/controllers/` |
+| **Relación y `populate`**: Producto → Categoría en lecturas (`GET`) y mutaciones (`POST`, `PUT`) | `server/src/models/productModel.js`, `server/src/services/productService.js` (ver [Relaciones entre entidades](#relaciones-entre-entidades)) |
+| **Códigos HTTP y manejo de errores**: respuestas estándar (200, 201, 400, 401, 403, 404, 409, 500) | `server/src/middleware/errorHandler.js`, `server/src/controllers/` (ver [Tabla de Códigos HTTP](#tabla-de-códigos-http-de-respuesta)) |
 | **Variables de entorno (`dotenv`)**: URI de MongoDB y `JWT_SECRET` sin valores sensibles hardcodeados | `server/app.js`, `server/.env`, `server/.env.example` |
 | **CORS**: habilitado en la aplicación principal | `server/app.js` |
-| **Estructura modular de directorios**: separación en `models/`, `services/`, `controllers/`, `routes/`, `middleware/`, `config/` | Carpeta `server/` |
-| **Usuarios y seguridad**: modelo de usuario, `bcrypt` en *pre-save hook*, JWT y middleware `verifyToken` | `server/src/models/userModel.js`, `server/src/middleware/verifyToken.js` |
+| **Estructura modular de directorios**: separación en `models/`, `services/`, `controllers/`, `routes/`, `middleware/`, `config/` | Carpeta `server/` (ver [Estructura del Repositorio](#estructura-del-repositorio)) |
+| **Usuarios y seguridad**: modelo de usuario, `bcrypt` en *pre-save hook*, JWT y middleware `verifyToken` | `server/src/models/userModel.js`, `server/src/middleware/verifyToken.js` (ver [Autenticación y Usuarios](#autenticación-y-usuarios)) |
 
 **Extensiones y características adicionales:**  
-Más allá de los requisitos básicos, el sistema incorpora un panel web completo en React (`client/`), ampliación del dominio con las entidades Localidades, Zonas y Clientes con jerarquía logística y generación de hoja de ruta de reparto imprimible (`server/src/services/localityService.js`), validaciones rigurosas de esquemas con Zod en todas las entradas, control de acceso basado en roles (`admin` y `repartidor`), limitación de tasa de peticiones en login con `express-rate-limit` contra fuerza bruta, y una suite de pruebas automatizadas con Jest y Supertest (61 tests cubriendo endpoints, seguridad y reglas de negocio).
+Más allá de los requisitos básicos, el sistema incorpora un panel web completo en React (`client/`), ampliación del dominio con las entidades Localidades, Zonas y Clientes con jerarquía logística y generación de hoja de ruta de reparto imprimible (`server/src/services/localityService.js`), validaciones rigurosas de esquemas con Zod en todas las entradas, control de acceso basado en roles (`admin` y `repartidor`), limitación de tasa de peticiones en login con `express-rate-limit` contra fuerza bruta, y una suite de tests con Jest y Supertest cubriendo endpoints, seguridad y reglas de negocio.
 
 ---
 
@@ -174,7 +196,7 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
   - **Express 4** (Framework HTTP y enrutamiento minimalista)
   - **MongoDB** (Base de datos documental NoSQL)
   - **Mongoose 8** (Modelado de datos ODM, esquemas con validaciones y hooks asincrónicos)
-  - **Zod 3** (Validación rigurosa de esquemas en body, params y query con tipado estricto)
+  - **Zod** (Validación rigurosa de esquemas en body, params y query con tipado estricto)
   - **express-rate-limit** (Limitador de peticiones para mitigación de fuerza bruta en login)
   - **JSON Web Token (jsonwebtoken)** (Autenticación sin estado mediante tokens firmados)
   - **bcrypt** (Hasheo salteado y verificación unidireccional de contraseñas)
@@ -184,8 +206,12 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
 - **Frontend:**
   - **React 18** (Biblioteca para interfaces de usuario declarativas basadas en componentes)
   - **Vite 6** (Herramienta de desarrollo y empaquetador ultrarrápido)
-  - **React Router 7** (Enrutamiento del lado del cliente con navegación declarativa)
+  - **React Router 6** (Enrutamiento del lado del cliente con navegación declarativa)
   - **CSS3 Moderno Puro** (Mobile-first, Flexbox, CSS Grid, variables CSS, vistas adaptables sin librerías pesadas)
+
+- **Testing y Herramientas:**
+  - **Jest 29** y **Supertest 7** (Suite de pruebas de integración para endpoints HTTP, seguridad y reglas de negocio)
+  - **cross-env** (Gestión homogénea de variables de entorno multiplataforma en scripts)
 
 ---
 
@@ -977,7 +1003,7 @@ Todas las respuestas de error de la API utilizan una estructura unificada y pred
 - Filtros query avanzados por categoría, zona, localidad y estado comercial.
 - Extra: Hoja de ruta logística por localidad (`/api/localities/:id/hoja-de-ruta`) con ordenamiento inteligente y vista de impresión estilo planilla/Excel.
 - Panel de control web en React con Vite, React Router, diseño responsive mobile-first, tablas convertibles a tarjetas, alertas de error enriquecidas y dashboard de estadísticas.
-- Pruebas automatizadas: Suite de 61 tests de integración con Jest y Supertest cubriendo endpoints, validaciones con Zod, seguridad de rutas y base aislada `_test`.
+- Pruebas automatizadas: Suite de tests con Jest y Supertest cubriendo endpoints, validaciones con Zod, seguridad de rutas y base aislada `_test`.
 
 ### Funcionalidades planificadas (Fases futuras)
 1. **Hojas de ruta extendidas:** Programación de recorridos diarios con distinción entre reparto de agua cargada y recolección de envases vacíos.
@@ -1017,6 +1043,9 @@ distribuidora-agua/
 │   ├── package-lock.json
 │   ├── api/
 │   │   └── index.js             (punto de entrada serverless para Vercel)
+│   ├── scripts/
+│   │   ├── backup_dev.js        (generación de backups JSON de colecciones de desarrollo)
+│   │   └── migrate_hierarchy.js (migración de jerarquía de localidades y zonas)
 │   ├── src/
 │   │   ├── config/
 │   │   │   ├── db.js            (conexión a MongoDB con Mongoose)
@@ -1147,14 +1176,14 @@ El proyecto está configurado para desplegarse en **Vercel** como dos proyectos 
 #### 1. Desplegar el Backend primero (`server/`)
 1. En el panel de control de Vercel, hacer clic en **"Add New..."** > **"Project"** e importar este repositorio.
 2. Configurar los parámetros del proyecto:
-   - **Project Name:** `distribuidora-agua-api` (o el nombre preferido para la API).
+   - **Project Name:** `proyecto-agua` (o el nombre preferido para la API).
    - **Framework Preset:** `Other` (Node.js / Express Serverless).
    - **Root Directory:** Hacer clic en *Edit* y seleccionar la carpeta `server`.
    - **Build and Output Settings:** Dejar las opciones por defecto (Build Command y Output Directory vacíos).
 3. En la sección **Environment Variables**, agregar las siguientes variables:
    | Variable | Valor de Ejemplo / Producción | Descripción |
    |---|---|---|
-   | `MONGODB_URI` | `mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority` | Cadena de conexión al clúster de MongoDB Atlas |
+   | `MONGODB_URI` | `mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority` | Cadena de conexión al clúster de MongoDB Atlas (debe incluir el nombre de la base de datos) |
    | `JWT_SECRET` | `<generá-un-secreto-aleatorio>` | **Obligatoria:** Clave secreta robusta para firma de tokens JWT (sin fallback; el backend aborta si falta o si en producción tiene menos de 32 caracteres) |
    | `JWT_EXPIRES_IN` | `2h` | Tiempo de vida del token antes de expirar |
 
@@ -1166,31 +1195,32 @@ El proyecto está configurado para desplegarse en **Vercel** como dos proyectos 
    > ```
    *(Nota: la variable `CLIENT_URL` se completará en el paso 3 una vez conocido el dominio del frontend).*
 4. Hacer clic en **"Deploy"**.
-5. Al finalizar, Vercel asignará la URL pública del backend, por ejemplo:
-   `https://distribuidora-agua-api.vercel.app`
+5. Al finalizar, Vercel asignará la URL pública del backend:
+   `https://proyecto-agua-three.vercel.app`
 
 #### 2. Desplegar el Frontend (`client/`)
 1. En Vercel, hacer clic nuevamente en **"Add New..."** > **"Project"** e importar el mismo repositorio.
 2. Configurar los parámetros del proyecto:
-   - **Project Name:** `distribuidora-agua-client` (o el nombre preferido para la web).
+   - **Project Name:** `my-crm-utn` (o el nombre preferido para la web).
    - **Framework Preset:** `Vite` (detectado automáticamente).
    - **Root Directory:** Hacer clic en *Edit* y seleccionar la carpeta `client`.
    - **Build Command:** `npm run build`
    - **Output Directory:** `dist`
 3. En la sección **Environment Variables**, agregar:
-   | Variable | Valor de Ejemplo / Producción | Descripción |
+   | Variable | Valor de Producción | Descripción |
    |---|---|---|
-   | `VITE_API_URL` | `https://distribuidora-agua-api.vercel.app/api` | URL pública de la API desplegada en el paso 1 (con `/api` y **sin** barra final) |
+   | `VITE_API_URL` | `https://proyecto-agua-three.vercel.app/api` | URL pública de la API desplegada en el paso 1 (con `/api` y **sin** barra final) |
 4. Hacer clic en **"Deploy"**.
-5. Al finalizar, Vercel asignará la URL pública del frontend, por ejemplo:
-   `https://distribuidora-agua-client.vercel.app`
+5. Al finalizar, Vercel asignará la URL pública del frontend:
+   `https://my-crm-utn.vercel.app`
 
 #### 3. Configurar `CLIENT_URL` en el Backend y Redeploy
 Para habilitar la protección CORS en producción y admitir peticiones legítimas del frontend:
-1. Ir al proyecto del backend en Vercel (`distribuidora-agua-api`) > **Settings** > **Environment Variables**.
+1. Ir al proyecto del backend en Vercel > **Settings** > **Environment Variables**.
 2. Crear o editar la variable:
    - **Key:** `CLIENT_URL`
-   - **Value:** `https://distribuidora-agua-client.vercel.app` *(admite múltiples dominios separados por coma si se requiere)*.
+   - **Value:** `https://my-crm-utn.vercel.app`
+   > `CLIENT_URL` admite varios dominios separados por coma (sin espacios ni barra final), por ejemplo: `https://my-crm-utn.vercel.app,http://localhost:5173`. Debe estar configurada en **Production**.
 3. Ir a la pestaña **Deployments**, hacer clic en los tres puntos (`...`) del último despliegue y seleccionar **Redeploy** para aplicar los cambios de entorno.
 
 #### 4. Poblado inicial de datos en MongoDB Atlas (Seed)
@@ -1220,10 +1250,19 @@ npm run seed
 
 ---
 
-### URLs del entorno productivo (Placeholders)
-- **API Backend:** `https://distribuidora-agua-api.vercel.app`
-- **Frontend Web:** `https://distribuidora-agua-client.vercel.app`
+### URLs del entorno productivo
+- **API Backend:** `https://proyecto-agua-three.vercel.app`
+- **Frontend Web:** `https://my-crm-utn.vercel.app`
 - **Base de Datos:** MongoDB Atlas Cluster (`mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/distribuidora_agua?retryWrites=true&w=majority`)
+
+### Problemas comunes en Vercel
+
+1. **CORS:**
+   - La variable `CLIENT_URL` debe estar cargada en el entorno **Production** con el dominio fijo del frontend (`https://my-crm-utn.vercel.app`, sin espacios ni barra final). Tras configurarla, es obligatorio realizar un **Redeploy** del backend para que surta efecto.
+2. **`[]` en `/api/categories`:**
+   - La variable `MONGODB_URI` no incluye el nombre de la base de datos en la cadena de conexión (por ejemplo `mongodb+srv://.../?retryWrites=true` en vez de `mongodb+srv://.../distribuidora_agua?retryWrites=true`). Sin el nombre de la base, MongoDB conecta a `test` (que se encuentra vacía). Corregir la URI y hacer **Redeploy**.
+3. **`VITE_API_URL` debe terminar en `/api` y requiere Redeploy del frontend:**
+   - La URL de la API configurada en el cliente debe terminar con `/api` (ej. `https://proyecto-agua-three.vercel.app/api`). Como las variables de Vite se incrustan durante la compilación, cualquier ajuste exige un **Redeploy** del frontend para reconstruir el bundle.
 
 ### Usuario de prueba (cargado por el Seed)
 - **Email:** `admin@aguapura.com`
