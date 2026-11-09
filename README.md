@@ -83,7 +83,7 @@ npm test
 | **Usuarios y seguridad**: modelo de usuario, `bcrypt` en *pre-save hook*, JWT y middleware `verifyToken` | `server/src/models/userModel.js`, `server/src/middleware/verifyToken.js` |
 
 **Extensiones y características adicionales:**  
-Más allá de los requisitos básicos, el sistema incorpora un panel web completo en React (`client/`), ampliación del dominio con las entidades Localidades, Zonas y Clientes con jerarquía logística y generación de hoja de ruta de reparto imprimible (`server/src/services/localityService.js`), validaciones rigurosas de esquemas con Zod en todas las entradas, control de acceso basado en roles (`admin` y `repartidor`), limitación de tasa de peticiones en login con `express-rate-limit` contra fuerza bruta, y una suite de pruebas automatizadas con Jest y Supertest (61 tests cubriendo endpoints, seguridad y reglas de negocio).
+Más allá de los requisitos básicos, el sistema incorpora un panel web completo en React (`client/`), ampliación del dominio con las entidades Localidades, Zonas y Clientes con jerarquía logística y generación de hoja de ruta de reparto imprimible (`server/src/services/localityService.js`), validaciones rigurosas de esquemas con Zod en todas las entradas, control de acceso basado en roles (`admin` y `repartidor`), limitación de tasa de peticiones en login con `express-rate-limit` contra fuerza bruta, y una suite de tests con Jest y Supertest cubriendo endpoints, seguridad y reglas de negocio.
 
 ---
 
@@ -181,7 +181,7 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
   - **Express 4** (Framework HTTP y enrutamiento minimalista)
   - **MongoDB** (Base de datos documental NoSQL)
   - **Mongoose 8** (Modelado de datos ODM, esquemas con validaciones y hooks asincrónicos)
-  - **Zod 3** (Validación rigurosa de esquemas en body, params y query con tipado estricto)
+  - **Zod** (Validación rigurosa de esquemas en body, params y query con tipado estricto)
   - **express-rate-limit** (Limitador de peticiones para mitigación de fuerza bruta en login)
   - **JSON Web Token (jsonwebtoken)** (Autenticación sin estado mediante tokens firmados)
   - **bcrypt** (Hasheo salteado y verificación unidireccional de contraseñas)
@@ -191,8 +191,12 @@ Más allá de los requisitos básicos, el sistema incorpora un panel web complet
 - **Frontend:**
   - **React 18** (Biblioteca para interfaces de usuario declarativas basadas en componentes)
   - **Vite 6** (Herramienta de desarrollo y empaquetador ultrarrápido)
-  - **React Router 7** (Enrutamiento del lado del cliente con navegación declarativa)
+  - **React Router 6** (Enrutamiento del lado del cliente con navegación declarativa)
   - **CSS3 Moderno Puro** (Mobile-first, Flexbox, CSS Grid, variables CSS, vistas adaptables sin librerías pesadas)
+
+- **Testing y Herramientas:**
+  - **Jest 29** y **Supertest 7** (Suite de pruebas de integración para endpoints HTTP, seguridad y reglas de negocio)
+  - **cross-env** (Gestión homogénea de variables de entorno multiplataforma en scripts)
 
 ---
 
@@ -984,7 +988,7 @@ Todas las respuestas de error de la API utilizan una estructura unificada y pred
 - Filtros query avanzados por categoría, zona, localidad y estado comercial.
 - Extra: Hoja de ruta logística por localidad (`/api/localities/:id/hoja-de-ruta`) con ordenamiento inteligente y vista de impresión estilo planilla/Excel.
 - Panel de control web en React con Vite, React Router, diseño responsive mobile-first, tablas convertibles a tarjetas, alertas de error enriquecidas y dashboard de estadísticas.
-- Pruebas automatizadas: Suite de 61 tests de integración con Jest y Supertest cubriendo endpoints, validaciones con Zod, seguridad de rutas y base aislada `_test`.
+- Pruebas automatizadas: Suite de tests con Jest y Supertest cubriendo endpoints, validaciones con Zod, seguridad de rutas y base aislada `_test`.
 
 ### Funcionalidades planificadas (Fases futuras)
 1. **Hojas de ruta extendidas:** Programación de recorridos diarios con distinción entre reparto de agua cargada y recolección de envases vacíos.
@@ -1024,6 +1028,9 @@ distribuidora-agua/
 │   ├── package-lock.json
 │   ├── api/
 │   │   └── index.js             (punto de entrada serverless para Vercel)
+│   ├── scripts/
+│   │   ├── backup_dev.js        (generación de backups JSON de colecciones de desarrollo)
+│   │   └── migrate_hierarchy.js (migración de jerarquía de localidades y zonas)
 │   ├── src/
 │   │   ├── config/
 │   │   │   ├── db.js            (conexión a MongoDB con Mongoose)
