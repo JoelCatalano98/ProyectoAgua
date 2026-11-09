@@ -167,7 +167,12 @@ const HojaRutaPage = () => {
 
       {/* Contenido Imprimible de Hoja de Ruta */}
       {!loadingHojas && hojas.length > 0 && (
-        <div className="hoja-ruta-container">
+        <>
+          <div className="hoja-ruta-scroll-hint no-print" aria-hidden="true">
+            <span>↔️</span>
+            <span>Deslizá horizontalmente para ver todas las columnas de la planilla</span>
+          </div>
+          <div className="hoja-ruta-container">
           {hojas.map((hoja, index) => (
             <div key={hoja.localidad?._id || index} className="hoja-localidad-seccion">
               {/* Encabezado por Localidad */}
@@ -287,6 +292,7 @@ const HojaRutaPage = () => {
             </div>
           ))}
         </div>
+        </>
       )}
 
       {!loadingHojas && hojas.length === 0 && !displayError && (
