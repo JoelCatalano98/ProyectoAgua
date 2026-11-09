@@ -1,6 +1,11 @@
 # Sistema de Gestión de Reparto de Agua (Bidones y Dispensers) — TP Final Backend UTN BA
 
+> [!NOTE]
+> **Estructura del proyecto:** Este repositorio utiliza una arquitectura monorepo desacoplada: el **Backend** se encuentra ubicado en la carpeta `server/` (conteniendo `app.js`, `package.json`, `.env` y la estructura modular `src/` exigida por la consigna: `models/`, `services/`, `controllers/`, `routes/`, `config/`, `middleware/`), y el **Frontend** se encuentra en `client/` (React + Vite). El `package.json` en la raíz incluye scripts de conveniencia (`npm start`, `npm test`, `npm run seed`) para operar directamente.
+
 Sistema integral de gestión comercial y logística para distribuidoras de agua purificada envasada y dispensers, orientado a la administración de catálogos, delimitación de recorridos por localidades/zonas, cuentas corrientes de clientes y control de operadores.
+
+- **Repositorio en GitHub:** https://github.com/JoelCatalano98/ProyectoAgua
 
 ## Demo en línea
 
@@ -38,6 +43,25 @@ Cada parte (`server/` para el backend y `client/` para el frontend) es un proyec
 - Instancia de MongoDB accesible (servicio local en `127.0.0.1:27017`, Docker o MongoDB Atlas).
 
 ### Backend (`server/`)
+
+#### 1. Variables de entorno (`server/.env`)
+El archivo `.env` contiene las variables del entorno y se entrega adjunto a través del campus virtual de la UTN. Para preparar el entorno local a partir de la plantilla versionada:
+
+```bash
+cp server/.env.example server/.env
+```
+
+Contenido literal de `server/.env.example` (valores de ejemplo / placeholders):
+```env
+PORT=3000
+MONGODB_URI=mongodb://127.0.0.1:27017/distribuidora_agua
+# OBLIGATORIO: Clave secreta para firma de tokens JWT (sin valor por defecto; la app aborta si no está configurada)
+JWT_SECRET=tu_clave_secreta_jwt_aqui
+JWT_EXPIRES_IN=2h
+CLIENT_URL=http://localhost:5173,https://tu-frontend.vercel.app
+```
+
+#### 2. Instalación, poblado inicial y arranque
 En una primera terminal:
 ```bash
 cd server && npm install && npm run seed && npm start
@@ -45,10 +69,11 @@ cd server && npm install && npm run seed && npm start
 - `npm run seed` puebla la base de datos con categorías, zonas, localidades, clientes, productos y el usuario administrador inicial.
 - Para desarrollo con recarga automática, podés ejecutar `npm run dev`.
 - El servidor queda disponible en `http://localhost:3000`.
+*(Opcionalmente, podés ejecutar directamente `npm start` o `npm test` desde la raíz del repositorio).*
 
 > [!TIP]
-> **Variables de entorno para desarrollo local (`server/.env.local`):**
-> El archivo `server/.env` se mantiene versionado con valores de ejemplo/placeholders según lo requerido por la consigna del TP. Para desarrollo local, la aplicación carga automáticamente `server/.env.local` en primer lugar (ignorado por Git en `.gitignore`). Podés crear `server/.env.local` con tus variables locales reales (ej. un `JWT_SECRET` propio o URI personalizada); `dotenv` dará prioridad a las variables de `.env.local` sin sobreescribirlas con `.env`. La suite de tests automatizados (`npm test`) funciona de forma totalmente independiente con su propia configuración aislada (`_test`).
+> **Variables de entorno para desarrollo local privado (`server/.env.local`):**
+> Para desarrollo local, la aplicación carga automáticamente `server/.env.local` en primer lugar (ignorado por Git). Podés crear `server/.env.local` con tus variables locales privadas (ej. un `JWT_SECRET` propio o URI personalizada); `dotenv` dará prioridad a las variables de `.env.local` sin sobreescribirlas con `.env`. La suite de tests automatizados (`npm test`) funciona de forma totalmente independiente con su propia configuración aislada (`_test`).
 
 ### Frontend (`client/`)
 En una segunda terminal:
