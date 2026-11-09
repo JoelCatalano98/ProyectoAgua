@@ -1,7 +1,8 @@
 # Sistema de Gestión de Reparto de Agua (Bidones y Dispensers) — TP Final Backend UTN BA
 
 > [!NOTE]
-> **Estructura del proyecto:** Este repositorio utiliza una arquitectura monorepo desacoplada: el **Backend** se encuentra ubicado en la carpeta `server/` (conteniendo `app.js`, `package.json`, `.env` y la estructura modular `src/` exigida por la consigna: `models/`, `services/`, `controllers/`, `routes/`, `config/`, `middleware/`), y el **Frontend** se encuentra en `client/` (React + Vite). El `package.json` en la raíz incluye scripts de conveniencia (`npm start`, `npm test`, `npm run seed`) para operar directamente.
+> **Dónde está cada cosa:** el backend (lo que evalúa la consigna) está en `server/`, con `app.js`, `package.json` y `src/{models,services,controllers,routes,config,middleware}`. El frontend (opcional) está en `client/`. Se separaron en dos carpetas para desplegarlos como proyectos independientes en Vercel.
+> Desde la raíz podés usar `npm start`, `npm test` y `npm run seed`, que delegan en `server/`.
 
 Sistema integral de gestión comercial y logística para distribuidoras de agua purificada envasada y dispensers, orientado a la administración de catálogos, delimitación de recorridos por localidades/zonas, cuentas corrientes de clientes y control de operadores.
 
@@ -1237,10 +1238,20 @@ Todas las respuestas de error de la API utilizan una estructura unificada y pred
 
 ## Estructura del Repositorio
 
-El repositorio está organizado en dos partes claramente separadas e independientes: `server/` (backend) y `client/` (frontend).
+Mapeo de la estructura exigida por la consigna frente a la organización modular del repositorio:
 
-> [!NOTE]
-> **Estructura pedida por la consigna:** La carpeta `server/` contiene la estructura modular de directorios (`app.js`, `.env.example`, `package.json`, `src/config/`, `src/controllers/`, `src/middleware/`, `src/models/`, `src/routes/`, `src/services/`, `src/utils/`) requerida por la consigna del TP. La carpeta `client/` contiene el desarrollo del frontend opcional como Single Page Application (SPA). En la raíz se incluye un `package.json` de conveniencia con scripts delegados (`npm start`, `npm test`, `npm run seed`) para facilitar la ejecución y evaluación directa desde la raíz del repositorio.
+| La consigna pide | Está en |
+|---|---|
+| `app.js` (punto de entrada) | `server/app.js` |
+| `package.json` | `server/package.json` (y uno en la raíz con scripts de conveniencia) |
+| `.env` | se entrega por el campus; plantilla en `server/.env.example` |
+| `src/models/` | `server/src/models/` |
+| `src/services/` | `server/src/services/` |
+| `src/controllers/` | `server/src/controllers/` |
+| `src/routes/` | `server/src/routes/` |
+| `src/config/db.js` | `server/src/config/db.js` |
+| `src/middleware/verifyToken.js` | `server/src/middleware/verifyToken.js` |
+| Frontend (opcional) | `client/` |
 
 ```
 ProyectoAgua/
