@@ -2,6 +2,13 @@
 
 Sistema integral de gestión comercial y logística para distribuidoras de agua purificada envasada y dispensers, orientado a la administración de catálogos, delimitación de recorridos por localidades/zonas, cuentas corrientes de clientes y control de operadores.
 
+## Demo en línea
+
+- **Frontend:** https://my-crm-utn.vercel.app
+- **API:** https://proyecto-agua-three.vercel.app
+
+*El usuario y la contraseña del sitio desplegado se entregan por separado, y las credenciales del seed local (`admin@aguapura.com` / `admin1234`) son solo para desarrollo.*
+
 **Stack tecnológico:** Node.js, Express, MongoDB (Mongoose) y React + Vite.  
 **Autor:** Joel Catalano
 
