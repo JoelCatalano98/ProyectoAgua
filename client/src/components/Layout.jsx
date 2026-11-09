@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useModal } from '../hooks/useModal';
 import { useSettings } from '../hooks/useSettings';
+import InstallPrompt from './InstallPrompt';
 
 const Layout = () => {
   const { user, logout } = useAuth();
@@ -145,7 +146,8 @@ const Layout = () => {
               {settingsLoading ? 'Sistema de Gestión' : (nombreEmpresa || 'Sistema de Gestión')}
             </h1>
           </div>
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <InstallPrompt />
             <button
               onClick={handleLogout}
               className="btn btn-secondary btn-sm"
